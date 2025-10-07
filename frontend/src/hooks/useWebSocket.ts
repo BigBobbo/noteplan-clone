@@ -4,7 +4,7 @@ import { useFileStore } from '../store/fileStore';
 import type { FileChangedEvent } from '../types';
 
 export function useWebSocket() {
-  const { updateFileInStore, addFileToStore, removeFileFromStore, currentFile, openFile } =
+  const { updateFileInStore, removeFileFromStore, currentFile, openFile, shouldIgnoreExternalChange } =
     useFileStore();
 
   useEffect(() => {
@@ -16,6 +16,12 @@ export function useWebSocket() {
       const { event, path } = data;
 
       if (event === 'modified') {
+        // Check if this change was caused by our own save
+        if (shouldIgnoreExternalChange(path)) {
+          console.log('Ignoring self-triggered file change:', path);
+          return;
+        }
+
         // If current file was modified externally, reload it
         if (currentFile && currentFile.metadata.path === path) {
           console.log('Current file modified externally, reloading...');
@@ -39,7 +45,7 @@ export function useWebSocket() {
       websocket.off('file:changed', handleFileChanged);
       websocket.disconnect();
     };
-  }, [currentFile]);
+  }, [currentFile, shouldIgnoreExternalChange]);
 
   return {
     isConnected: websocket.isConnected(),

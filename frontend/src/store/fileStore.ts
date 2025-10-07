@@ -8,6 +8,7 @@ interface FileStore {
   currentFile: FileData | null;
   loading: boolean;
   error: string | null;
+  lastSaveTimestamp: Record<string, number>; // Track when files were last saved by this client
 
   // Actions
   loadFiles: () => Promise<void>;
@@ -21,6 +22,7 @@ interface FileStore {
   addFileToStore: (file: FileMetadata) => void;
   removeFileFromStore: (path: string) => void;
   clearError: () => void;
+  shouldIgnoreExternalChange: (path: string) => boolean;
 }
 
 export const useFileStore = create<FileStore>((set, get) => ({
@@ -29,6 +31,7 @@ export const useFileStore = create<FileStore>((set, get) => ({
   currentFile: null,
   loading: false,
   error: null,
+  lastSaveTimestamp: {},
 
   loadFiles: async () => {
     try {
@@ -64,6 +67,15 @@ export const useFileStore = create<FileStore>((set, get) => ({
 
   saveFile: async (path: string, content: string) => {
     try {
+      // Record timestamp before save
+      const saveTimestamp = Date.now();
+      set((state) => ({
+        lastSaveTimestamp: {
+          ...state.lastSaveTimestamp,
+          [path]: saveTimestamp,
+        },
+      }));
+
       await api.saveFile(path, content);
 
       // Update current file if it's the one being saved
@@ -138,7 +150,7 @@ export const useFileStore = create<FileStore>((set, get) => ({
 
   setCurrentFile: (file) => set({ currentFile: file }),
 
-  updateFileInStore: (path, content) => {
+  updateFileInStore: (path) => {
     const { files } = get();
     const fileIndex = files.findIndex((f) => f.path === path);
     if (fileIndex !== -1) {
@@ -162,4 +174,14 @@ export const useFileStore = create<FileStore>((set, get) => ({
   },
 
   clearError: () => set({ error: null }),
+
+  shouldIgnoreExternalChange: (path: string) => {
+    const { lastSaveTimestamp } = get();
+    const lastSave = lastSaveTimestamp[path];
+    if (!lastSave) return false;
+
+    // Ignore changes within 2 seconds of our last save
+    const timeSinceLastSave = Date.now() - lastSave;
+    return timeSinceLastSave < 2000;
+  },
 }));

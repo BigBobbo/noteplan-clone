@@ -1,11 +1,13 @@
 import { useEffect } from 'react';
-import { matchesShortcut, GLOBAL_SHORTCUTS } from '../utils/shortcuts';
+import { matchesShortcut, GLOBAL_SHORTCUTS, CALENDAR_SHORTCUTS } from '../utils/shortcuts';
 import { useUIStore } from '../store/uiStore';
 import { useFileStore } from '../store/fileStore';
+import { useCalendarStore } from '../store/calendarStore';
 
 export function useKeyboard() {
   const { toggleSidebar, toggleTheme, openNewFileModal } = useUIStore();
   const { currentFile, saveFile } = useFileStore();
+  const { goToToday, goToPrevious, goToNext, toggleTimeline } = useCalendarStore();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -38,6 +40,34 @@ export function useKeyboard() {
         toggleTheme();
         return;
       }
+
+      // Go to today (Cmd/Ctrl+T)
+      if (matchesShortcut(event, CALENDAR_SHORTCUTS.GO_TO_TODAY)) {
+        event.preventDefault();
+        goToToday();
+        return;
+      }
+
+      // Previous day (Cmd/Ctrl+Shift+[)
+      if (matchesShortcut(event, CALENDAR_SHORTCUTS.PREVIOUS_DAY)) {
+        event.preventDefault();
+        goToPrevious();
+        return;
+      }
+
+      // Next day (Cmd/Ctrl+Shift+])
+      if (matchesShortcut(event, CALENDAR_SHORTCUTS.NEXT_DAY)) {
+        event.preventDefault();
+        goToNext();
+        return;
+      }
+
+      // Toggle timeline (Cmd/Ctrl+L)
+      if (matchesShortcut(event, CALENDAR_SHORTCUTS.TOGGLE_TIMELINE)) {
+        event.preventDefault();
+        toggleTimeline();
+        return;
+      }
     };
 
     document.addEventListener('keydown', handleKeyDown);
@@ -45,5 +75,5 @@ export function useKeyboard() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [currentFile, openNewFileModal, toggleSidebar, toggleTheme, saveFile]);
+  }, [currentFile, openNewFileModal, toggleSidebar, toggleTheme, saveFile, goToToday, goToPrevious, goToNext, toggleTimeline]);
 }

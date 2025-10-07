@@ -106,6 +106,18 @@ class ApiService {
     const response = await this.client.post('/api/calendar/daily');
     return response.data;
   }
+
+  async getDateRange(start: string, end: string): Promise<any> {
+    const response = await this.client.get('/api/calendar/range', {
+      params: { start, end }
+    });
+    return response.data;
+  }
+
+  async getTimeBlocks(date: string): Promise<any> {
+    const response = await this.client.get(`/api/calendar/timeblocks/${date}`);
+    return response.data;
+  }
 }
 
 // Export singleton instance

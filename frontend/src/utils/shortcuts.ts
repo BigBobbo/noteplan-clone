@@ -124,3 +124,31 @@ export const EDITOR_SHORTCUTS = {
     description: 'Decrease heading level',
   },
 };
+
+/**
+ * Calendar shortcuts configuration
+ */
+export const CALENDAR_SHORTCUTS = {
+  GO_TO_TODAY: {
+    key: 't',
+    ctrl: true,
+    description: 'Go to today',
+  },
+  PREVIOUS_DAY: {
+    key: '[',
+    ctrl: true,
+    shift: true,
+    description: 'Go to previous day',
+  },
+  NEXT_DAY: {
+    key: ']',
+    ctrl: true,
+    shift: true,
+    description: 'Go to next day',
+  },
+  TOGGLE_TIMELINE: {
+    key: 'l',
+    ctrl: true,
+    description: 'Toggle timeline view',
+  },
+};
