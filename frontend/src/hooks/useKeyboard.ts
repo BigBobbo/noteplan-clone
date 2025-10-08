@@ -5,12 +5,19 @@ import { useFileStore } from '../store/fileStore';
 import { useCalendarStore } from '../store/calendarStore';
 
 export function useKeyboard() {
-  const { toggleSidebar, toggleTheme, openNewFileModal } = useUIStore();
+  const { toggleSidebar, toggleTheme, openNewFileModal, toggleCommandPalette } = useUIStore();
   const { currentFile, saveFile } = useFileStore();
   const { goToToday, goToPrevious, goToNext, toggleTimeline } = useCalendarStore();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      // Command Palette (Cmd/Ctrl+K)
+      if (matchesShortcut(event, GLOBAL_SHORTCUTS.COMMAND_PALETTE)) {
+        event.preventDefault();
+        toggleCommandPalette();
+        return;
+      }
+
       // New note (Cmd/Ctrl+N)
       if (matchesShortcut(event, GLOBAL_SHORTCUTS.NEW_NOTE)) {
         event.preventDefault();
@@ -75,5 +82,5 @@ export function useKeyboard() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [currentFile, openNewFileModal, toggleSidebar, toggleTheme, saveFile, goToToday, goToPrevious, goToNext, toggleTimeline]);
+  }, [currentFile, openNewFileModal, toggleSidebar, toggleTheme, saveFile, goToToday, goToPrevious, goToNext, toggleTimeline, toggleCommandPalette]);
 }

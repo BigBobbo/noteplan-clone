@@ -9,10 +9,32 @@ import { EditorContent } from '@tiptap/react';
 import { EditorToolbar } from './EditorToolbar';
 import { useFileStore } from '../../store/fileStore';
 import { Loading } from '../common/Loading';
+import { WikiLink } from '../../extensions/WikiLink';
+import { wikiLinkMarkdownTransformer } from '../../extensions/WikiLinkMarkdown';
+import { resolveLink } from '../../services/linkService';
 
 export const Editor: React.FC = () => {
-  const { currentFile, saveFile } = useFileStore();
+  const { currentFile, saveFile, openFile } = useFileStore();
   const [saveTimeout, setSaveTimeout] = React.useState<ReturnType<typeof setTimeout> | null>(null);
+
+  // Use a ref to store the latest openFile function
+  const openFileRef = React.useRef(openFile);
+  openFileRef.current = openFile;
+
+  // Create a stable handler that always uses current state
+  const handleLinkClickRef = React.useRef((target: string) => {
+    // Get current files from store directly
+    const currentFiles = useFileStore.getState().files;
+    console.log('[Editor] handleLinkClick called with target:', target);
+    console.log('[Editor] Current files count:', currentFiles.length);
+
+    const targetPath = resolveLink(target, currentFiles);
+    if (targetPath) {
+      openFileRef.current(targetPath);
+    } else {
+      console.warn(`Could not resolve link: ${target}`);
+    }
+  });
 
   const editor = useEditor({
     extensions: [
@@ -25,6 +47,12 @@ export const Editor: React.FC = () => {
           class: 'text-amber-600 dark:text-amber-400 underline cursor-pointer',
         },
       }),
+      WikiLink.configure({
+        onLinkClick: (target: string) => handleLinkClickRef.current(target),
+        HTMLAttributes: {
+          class: 'wiki-link-decoration',
+        },
+      }),
       TaskList,
       TaskItem.configure({ nested: true }),
       Markdown.configure({
@@ -34,11 +62,13 @@ export const Editor: React.FC = () => {
         breaks: true,
         transformPastedText: true,
         transformCopiedText: true,
+        linkify: false,
       }),
     ],
-    content: currentFile?.content || '',
+    content: wikiLinkMarkdownTransformer.preProcess(currentFile?.content || ''),
     onUpdate: ({ editor }) => {
-      const newContent = ((editor.storage as any).markdown as any).getMarkdown();
+      const markdown = ((editor.storage as any).markdown as any).getMarkdown();
+      const newContent = wikiLinkMarkdownTransformer.postProcess(markdown);
 
       // Debounced auto-save
       if (saveTimeout) clearTimeout(saveTimeout);
@@ -72,7 +102,9 @@ export const Editor: React.FC = () => {
         const { from, to } = editor.state.selection;
         const hasFocus = editor.isFocused;
 
-        editor.commands.setContent(currentFile.content);
+        // Preprocess content to remove escaping from wiki links
+        const processedContent = wikiLinkMarkdownTransformer.preProcess(currentFile.content);
+        editor.commands.setContent(processedContent);
 
         // Restore cursor position if editor was focused
         if (hasFocus) {

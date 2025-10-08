@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Layout } from './components/layout/Layout';
 import { NewFileModal } from './components/modals/NewFileModal';
 import { DeleteConfirm } from './components/modals/DeleteConfirm';
+import { CommandPalette } from './components/command/CommandPalette';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useKeyboard } from './hooks/useKeyboard';
 import { useUIStore } from './store/uiStore';
@@ -47,6 +48,9 @@ function App() {
       {/* Modals */}
       <NewFileModal />
       <DeleteConfirm />
+
+      {/* Command Palette */}
+      <CommandPalette />
 
       {/* Global Error Toast */}
       {error && (

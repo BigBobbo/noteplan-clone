@@ -17,6 +17,7 @@ interface UIStore {
   newFileModalOpen: boolean;
   deleteConfirmOpen: boolean;
   settingsModalOpen: boolean;
+  commandPaletteOpen: boolean;
   fileToDelete: string | null;
 
   // Actions
@@ -31,6 +32,9 @@ interface UIStore {
   closeDeleteConfirm: () => void;
   openSettingsModal: () => void;
   closeSettingsModal: () => void;
+  toggleCommandPalette: () => void;
+  openCommandPalette: () => void;
+  closeCommandPalette: () => void;
 }
 
 export const useUIStore = create<UIStore>()(
@@ -43,6 +47,7 @@ export const useUIStore = create<UIStore>()(
       newFileModalOpen: false,
       deleteConfirmOpen: false,
       settingsModalOpen: false,
+      commandPaletteOpen: false,
       fileToDelete: null,
 
       toggleSidebar: () =>
@@ -87,6 +92,11 @@ export const useUIStore = create<UIStore>()(
 
       openSettingsModal: () => set({ settingsModalOpen: true }),
       closeSettingsModal: () => set({ settingsModalOpen: false }),
+
+      toggleCommandPalette: () =>
+        set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
+      openCommandPalette: () => set({ commandPaletteOpen: true }),
+      closeCommandPalette: () => set({ commandPaletteOpen: false }),
     }),
     {
       name: 'noteplan-ui-storage',

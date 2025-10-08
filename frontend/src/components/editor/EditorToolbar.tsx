@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Editor } from '@tiptap/react';
 import {
   BoldIcon,
@@ -6,15 +6,23 @@ import {
   ListBulletIcon,
   LinkIcon,
   CodeBracketIcon,
+  DocumentDuplicateIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
+import { TemplateSelector } from '../templates/TemplateSelector';
 
 interface EditorToolbarProps {
   editor: Editor | null;
 }
 
 export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
+  const [showTemplates, setShowTemplates] = useState(false);
+
   if (!editor) return null;
+
+  const handleTemplateSelect = (content: string) => {
+    editor.chain().focus().insertContent(content).run();
+  };
 
   const ToolbarButton = ({
     onClick,
@@ -123,6 +131,22 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor }) => {
       >
         <CodeBracketIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
       </ToolbarButton>
+
+      <div className="w-px h-6 bg-gray-300 dark:bg-gray-600 mx-1" />
+
+      <ToolbarButton
+        onClick={() => setShowTemplates(true)}
+        isActive={false}
+        title="Insert Template"
+      >
+        <DocumentDuplicateIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+      </ToolbarButton>
+
+      <TemplateSelector
+        isOpen={showTemplates}
+        onClose={() => setShowTemplates(false)}
+        onSelect={handleTemplateSelect}
+      />
     </div>
   );
 };

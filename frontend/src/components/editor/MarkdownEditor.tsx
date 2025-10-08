@@ -6,6 +6,10 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import { Markdown } from 'tiptap-markdown';
 import { Loading } from '../common/Loading';
+import { WikiLink } from '../../extensions/WikiLink';
+import { wikiLinkMarkdownTransformer } from '../../extensions/WikiLinkMarkdown';
+import { useFileStore } from '../../store/fileStore';
+import { resolveLink } from '../../services/linkService';
 
 interface MarkdownEditorProps {
   content: string;
@@ -18,6 +22,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onChange,
   readOnly = false,
 }) => {
+  const { files, openFile } = useFileStore();
+
+  const handleLinkClick = async (target: string) => {
+    const targetPath = resolveLink(target, files);
+    if (targetPath) {
+      await openFile(targetPath);
+    } else {
+      console.warn(`Could not resolve link: ${target}`);
+    }
+  };
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -31,6 +46,12 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           class: 'text-amber-600 dark:text-amber-400 underline cursor-pointer',
         },
       }),
+      WikiLink.configure({
+        onLinkClick: handleLinkClick,
+        HTMLAttributes: {
+          class: 'wiki-link-decoration',
+        },
+      }),
       TaskList,
       TaskItem.configure({
         nested: true,
@@ -42,12 +63,15 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         breaks: true,
         transformPastedText: true,
         transformCopiedText: true,
+        linkify: false,
+        transformers: [wikiLinkMarkdownTransformer],
       }),
     ],
-    content,
+    content: wikiLinkMarkdownTransformer.preProcess(content),
     editable: !readOnly,
     onUpdate: ({ editor }) => {
-      onChange(((editor.storage as any).markdown as any).getMarkdown());
+      const markdown = ((editor.storage as any).markdown as any).getMarkdown();
+      onChange(wikiLinkMarkdownTransformer.postProcess(markdown));
     },
     editorProps: {
       attributes: {
@@ -64,8 +88,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       const { from, to } = editor.state.selection;
       const hasFocus = editor.isFocused;
 
+      // Preprocess content to remove escaping from wiki links
+      const processedContent = wikiLinkMarkdownTransformer.preProcess(content);
+
       // Update content
-      editor.commands.setContent(content);
+      editor.commands.setContent(processedContent);
 
       // Restore cursor position if editor was focused
       if (hasFocus) {
@@ -81,6 +108,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       }
     }
   }, [content, editor]);
+
+  // Update link click handler when files change
+  useEffect(() => {
+    if (editor && files) {
+      // Force re-render to update click handlers with new file list
+      editor.view.updateState(editor.state);
+    }
+  }, [files, editor]);
 
   if (!editor) {
     return <Loading size="md" text="Loading editor..." />;
