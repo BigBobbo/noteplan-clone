@@ -60,7 +60,32 @@ export const Editor: React.FC = () => {
 
   useEffect(() => {
     if (editor && currentFile) {
-      editor.commands.setContent(currentFile.content);
+      const currentContent = ((editor.storage as any).markdown as any).getMarkdown();
+
+      // Only update if content actually changed
+      // Normalize whitespace to avoid false positives from trailing newlines
+      const normalizedFileContent = currentFile.content.trimEnd();
+      const normalizedEditorContent = currentContent.trimEnd();
+
+      if (normalizedFileContent !== normalizedEditorContent) {
+        // Save cursor position
+        const { from, to } = editor.state.selection;
+        const hasFocus = editor.isFocused;
+
+        editor.commands.setContent(currentFile.content);
+
+        // Restore cursor position if editor was focused
+        if (hasFocus) {
+          setTimeout(() => {
+            const docSize = editor.state.doc.content.size;
+            const safeFrom = Math.min(from, docSize);
+            const safeTo = Math.min(to, docSize);
+
+            editor.commands.setTextSelection({ from: safeFrom, to: safeTo });
+            editor.commands.focus();
+          }, 0);
+        }
+      }
     }
   }, [currentFile, editor]);
 

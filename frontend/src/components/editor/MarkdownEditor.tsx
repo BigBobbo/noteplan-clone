@@ -60,7 +60,25 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   // Update editor when content changes externally
   useEffect(() => {
     if (editor && content !== ((editor.storage as any).markdown as any).getMarkdown()) {
+      // Save cursor position
+      const { from, to } = editor.state.selection;
+      const hasFocus = editor.isFocused;
+
+      // Update content
       editor.commands.setContent(content);
+
+      // Restore cursor position if editor was focused
+      if (hasFocus) {
+        // Use setTimeout to ensure content is updated first
+        setTimeout(() => {
+          const docSize = editor.state.doc.content.size;
+          const safeFrom = Math.min(from, docSize);
+          const safeTo = Math.min(to, docSize);
+
+          editor.commands.setTextSelection({ from: safeFrom, to: safeTo });
+          editor.commands.focus();
+        }, 0);
+      }
     }
   }, [content, editor]);
 
