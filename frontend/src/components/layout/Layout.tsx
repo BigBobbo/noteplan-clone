@@ -1,8 +1,9 @@
 import React from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import { MarkdownEditor } from '../editor/MarkdownEditor';
+import { Editor } from '../editor/Editor';
 import { NewFileModal } from '../modals/NewFileModal';
+import { DeleteConfirm } from '../modals/DeleteConfirm';
 import { DateNavigator } from '../calendar/DateNavigator';
 import { Timeline } from '../calendar/Timeline';
 import { MiniCalendar } from '../calendar/MiniCalendar';
@@ -13,7 +14,7 @@ import { useCalendarStore } from '../../store/calendarStore';
 import { useEffect } from 'react';
 
 export const Layout: React.FC = () => {
-  const { setTheme } = useUIStore();
+  const { setTheme, sidebarCollapsed } = useUIStore();
   const { showTimeline } = useCalendarStore();
 
   // Initialize WebSocket connection
@@ -38,18 +39,18 @@ export const Layout: React.FC = () => {
   }, [setTheme]);
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    <div className="h-screen flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
       <Header />
 
       <div className="flex-1 flex overflow-hidden">
-        <Sidebar />
+        {!sidebarCollapsed && <Sidebar />}
 
         {/* Main content area with editor and optional timeline */}
         <div className="flex-1 flex flex-col overflow-hidden">
           <DateNavigator />
 
           <div className="flex-1 flex overflow-hidden">
-            <MarkdownEditor />
+            <Editor />
 
             {/* Right sidebar with mini calendar and timeline */}
             {showTimeline && (
@@ -70,6 +71,7 @@ export const Layout: React.FC = () => {
       </div>
 
       <NewFileModal />
+      <DeleteConfirm />
     </div>
   );
 };

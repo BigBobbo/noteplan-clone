@@ -6,20 +6,26 @@ const { format, parse } = require('date-fns');
 
 /**
  * Parse time blocks from markdown content
+ * Supports multiple formats:
+ * - + 08:00-09:00 Description (original format)
+ * - * 08:00-09:00 Description (markdown bullet)
+ * - - 08:00-09:00 Description (markdown dash)
+ * - 08:00-09:00 Description (no bullet)
  * @param {string} content - Markdown content
  * @returns {Array} Array of time block objects
  */
 function parseTimeBlocks(content) {
-  const regex = /^\+ (\d{2}:\d{2})-(\d{2}:\d{2}) (.+)$/gm;
   const blocks = [];
-  let match;
-  let lineNumber = 0;
 
   // Split content into lines to track line numbers
   const lines = content.split('\n');
 
   lines.forEach((line, index) => {
-    const blockMatch = line.match(/^\+ (\d{2}:\d{2})-(\d{2}:\d{2}) (.+)$/);
+    // Match various formats: +, *, -, or no prefix
+    // Also handle potential markdown list markers
+    const trimmedLine = line.trim();
+    const blockMatch = trimmedLine.match(/^[+*\-]?\s*(\d{2}:\d{2})-(\d{2}:\d{2})\s+(.+)$/);
+
     if (blockMatch) {
       const [_, start, end, description] = blockMatch;
       blocks.push({

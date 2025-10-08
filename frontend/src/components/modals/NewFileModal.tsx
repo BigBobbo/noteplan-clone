@@ -1,37 +1,53 @@
 import React, { useState } from 'react';
+import { Modal } from '../common/Modal';
+import { Button } from '../common/Button';
 import { useUIStore } from '../../store/uiStore';
 import { useFileStore } from '../../store/fileStore';
-import { Button } from '../common/Button';
-import { Modal } from '../common/Modal';
 
 export const NewFileModal: React.FC = () => {
   const { newFileModalOpen, closeNewFileModal } = useUIStore();
   const { createFile } = useFileStore();
-  const [filename, setFilename] = useState('');
+
+  const [fileName, setFileName] = useState('');
   const [folder, setFolder] = useState('Notes');
-  const [creating, setCreating] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleCreate = async () => {
-    if (!filename.trim()) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
 
-    setCreating(true);
+    if (!fileName.trim()) {
+      setError('File name is required');
+      return;
+    }
+
+    // Add .txt extension if not provided
+    const fullFileName = fileName.endsWith('.txt') || fileName.endsWith('.md')
+      ? fileName
+      : `${fileName}.txt`;
+
+    const filePath = `${folder}/${fullFileName}`;
+
     try {
-      const path = `${folder}/${filename}.txt`;
-      const content = `# ${filename}\n\n`;
-      await createFile(path, content);
+      setLoading(true);
+      await createFile(filePath, `# ${fileName}\n\n`);
+
+      // Reset and close
+      setFileName('');
+      setFolder('Notes');
       closeNewFileModal();
-      setFilename('');
-    } catch (error) {
-      console.error('Failed to create file:', error);
-      alert('Failed to create file');
+    } catch (err: any) {
+      setError(err.message || 'Failed to create file');
     } finally {
-      setCreating(false);
+      setLoading(false);
     }
   };
 
   const handleClose = () => {
+    setFileName('');
+    setError('');
     closeNewFileModal();
-    setFilename('');
   };
 
   return (
@@ -41,15 +57,44 @@ export const NewFileModal: React.FC = () => {
       title="Create New Note"
       size="md"
     >
-      <div className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* File Name Input */}
         <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor="fileName"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
+            Note Name
+          </label>
+          <input
+            id="fileName"
+            type="text"
+            value={fileName}
+            onChange={(e) => setFileName(e.target.value)}
+            placeholder="My New Note"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            autoFocus
+            disabled={loading}
+          />
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            .txt extension will be added automatically
+          </p>
+        </div>
+
+        {/* Folder Selection */}
+        <div>
+          <label
+            htmlFor="folder"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             Folder
           </label>
           <select
+            id="folder"
             value={folder}
             onChange={(e) => setFolder(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            disabled={loading}
           >
             <option value="Notes">Notes</option>
             <option value="Calendar">Calendar</option>
@@ -57,40 +102,28 @@ export const NewFileModal: React.FC = () => {
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">
-            File Name
-          </label>
-          <input
-            type="text"
-            value={filename}
-            onChange={(e) => setFilename(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            placeholder="My Note"
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400"
-            autoFocus
-          />
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            .txt extension will be added automatically
-          </p>
-        </div>
-      </div>
+        {/* Error Message */}
+        {error && (
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        )}
 
-      <div className="flex justify-end gap-3 mt-6">
-        <Button
-          variant="secondary"
-          onClick={handleClose}
-          disabled={creating}
-        >
-          Cancel
-        </Button>
-        <Button
-          onClick={handleCreate}
-          disabled={!filename.trim() || creating}
-        >
-          {creating ? 'Creating...' : 'Create'}
-        </Button>
-      </div>
+        {/* Buttons */}
+        <div className="flex justify-end gap-2 pt-2">
+          <Button
+            type="button"
+            variant="secondary"
+            onClick={handleClose}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button type="submit" disabled={loading || !fileName.trim()}>
+            {loading ? 'Creating...' : 'Create Note'}
+          </Button>
+        </div>
+      </form>
     </Modal>
   );
 };

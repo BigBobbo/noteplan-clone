@@ -13,13 +13,21 @@ export interface TimeBlock {
 
 /**
  * Parse time blocks from markdown content
+ * Supports multiple formats:
+ * - + 08:00-09:00 Description (original format)
+ * - * 08:00-09:00 Description (markdown bullet)
+ * - - 08:00-09:00 Description (markdown dash)
+ * - 08:00-09:00 Description (no bullet)
  */
 export function parseTimeBlocks(content: string): TimeBlock[] {
   const blocks: TimeBlock[] = [];
   const lines = content.split('\n');
 
   lines.forEach((line, index) => {
-    const blockMatch = line.match(/^\+ (\d{2}:\d{2})-(\d{2}:\d{2}) (.+)$/);
+    // Match various formats: +, *, -, or no prefix
+    const trimmedLine = line.trim();
+    const blockMatch = trimmedLine.match(/^[+*\-]?\s*(\d{2}:\d{2})-(\d{2}:\d{2})\s+(.+)$/);
+
     if (blockMatch) {
       const [_, start, end, description] = blockMatch;
       blocks.push({
