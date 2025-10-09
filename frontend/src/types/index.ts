@@ -194,3 +194,108 @@ export interface ReferenceOptions {
   contextLines?: number;
   minMentionLength?: number;
 }
+
+// Folder Management Types
+export interface FolderMetadata {
+  icon?: string;
+  color?: string;
+  tags?: string[];
+  defaultView?: 'list' | 'kanban';
+  created?: string;
+  modified?: string;
+}
+
+export interface FolderNodeWithMeta extends FolderNode {
+  metadata?: FolderMetadata;
+  noteCount?: number;
+  directNoteCount?: number;
+  subfolderCount?: number;
+  isProtected?: boolean;
+  depth?: number;
+}
+
+export interface FolderOperationResult {
+  success: boolean;
+  path?: string;
+  oldPath?: string;
+  newPath?: string;
+  affectedFiles?: string[];
+  deletedFiles?: string[];
+  deletedFolders?: string[];
+  error?: string;
+  operationId?: string;
+}
+
+export interface CreateFolderRequest {
+  name: string;
+  parentPath?: string;
+}
+
+export interface RenameFolderRequest {
+  newName: string;
+}
+
+export interface MoveFolderRequest {
+  targetPath: string;
+}
+
+export interface MoveNoteRequest {
+  targetFolder: string;
+}
+
+export interface BulkMoveRequest {
+  notePaths: string[];
+  targetFolder: string;
+}
+
+export interface BulkMoveResult {
+  success: boolean;
+  movedNotes: Array<{ oldPath: string; newPath: string }>;
+  failedNotes: Array<{ path: string; error: string }>;
+  operationId: string | null;
+}
+
+// WebSocket folder events
+export interface FolderCreatedEvent {
+  event: 'folder:created';
+  path: string;
+  timestamp: string;
+}
+
+export interface FolderRenamedEvent {
+  event: 'folder:renamed';
+  oldPath: string;
+  newPath: string;
+  affectedFiles: string[];
+  timestamp: string;
+}
+
+export interface FolderDeletedEvent {
+  event: 'folder:deleted';
+  path: string;
+  deletedFiles: string[];
+  deletedFolders: string[];
+  timestamp: string;
+}
+
+export interface FolderMovedEvent {
+  event: 'folder:moved';
+  oldPath: string;
+  newPath: string;
+  affectedFiles: string[];
+  timestamp: string;
+}
+
+export interface NoteMovedEvent {
+  event: 'note:moved';
+  oldPath: string;
+  newPath: string;
+  timestamp: string;
+}
+
+export interface FolderMetadataUpdatedEvent {
+  event: 'folder:metadata-updated';
+  path: string;
+  metadata: FolderMetadata;
+  timestamp: string;
+}

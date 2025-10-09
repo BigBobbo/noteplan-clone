@@ -22,6 +22,11 @@ export function matchesShortcut(
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
   const ctrlKey = isMac ? event.metaKey : event.ctrlKey;
 
+  // Safety check for event.key
+  if (!event.key) {
+    return false;
+  }
+
   if (shortcut.key && event.key.toLowerCase() !== shortcut.key.toLowerCase()) {
     return false;
   }

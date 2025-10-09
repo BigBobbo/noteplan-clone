@@ -23,6 +23,7 @@ interface FileStore {
   removeFileFromStore: (path: string) => void;
   clearError: () => void;
   shouldIgnoreExternalChange: (path: string) => boolean;
+  moveNoteToFolder: (notePath: string, targetFolder: string) => Promise<void>;
 }
 
 export const useFileStore = create<FileStore>((set, get) => ({
@@ -183,5 +184,58 @@ export const useFileStore = create<FileStore>((set, get) => ({
     // Ignore changes within 2 seconds of our last save
     const timeSinceLastSave = Date.now() - lastSave;
     return timeSinceLastSave < 2000;
+  },
+
+  moveNoteToFolder: async (notePath: string, targetFolder: string) => {
+    try {
+      set({ loading: true, error: null });
+
+      // Call the API to move the note
+      const result = await api.moveNote(notePath, { targetFolder });
+
+      if (result.success) {
+        // Update the file list
+        const { files, currentFile } = get();
+
+        // Remove old file and add with new path
+        const updatedFiles = files.filter(f => f.path !== notePath);
+        const movedFile = files.find(f => f.path === notePath);
+
+        if (movedFile && result.newPath) {
+          const newFile = {
+            ...movedFile,
+            path: result.newPath,
+            folder: targetFolder,
+            modified: new Date().toISOString()
+          };
+          updatedFiles.push(newFile);
+        }
+
+        set({ files: updatedFiles });
+
+        // Update current file if it was the moved one
+        if (currentFile && currentFile.metadata.path === notePath && result.newPath) {
+          set({
+            currentFile: {
+              ...currentFile,
+              metadata: {
+                ...currentFile.metadata,
+                path: result.newPath,
+                folder: targetFolder
+              }
+            }
+          });
+        }
+
+        // Reload files to ensure consistency
+        await get().loadFiles();
+      }
+
+      set({ loading: false });
+    } catch (error: any) {
+      set({ error: error.message, loading: false });
+      console.error('Failed to move note:', error);
+      throw error;
+    }
   },
 }));

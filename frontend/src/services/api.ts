@@ -7,6 +7,14 @@ import type {
   DeleteFileResponse,
   FolderTree,
   InitFoldersResponse,
+  FolderOperationResult,
+  CreateFolderRequest,
+  RenameFolderRequest,
+  MoveFolderRequest,
+  FolderMetadata,
+  MoveNoteRequest,
+  BulkMoveRequest,
+  BulkMoveResult,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
@@ -116,6 +124,63 @@ class ApiService {
 
   async getTimeBlocks(date: string): Promise<any> {
     const response = await this.client.get(`/api/calendar/timeblocks/${date}`);
+    return response.data;
+  }
+
+  // Folder Management Operations
+  async createFolder(data: CreateFolderRequest): Promise<FolderOperationResult> {
+    const response = await this.client.post('/api/folders/create', data);
+    return response.data;
+  }
+
+  async renameFolder(folderPath: string, data: RenameFolderRequest): Promise<FolderOperationResult> {
+    const response = await this.client.put('/api/folders/rename', {
+      folderPath,
+      ...data,
+    });
+    return response.data;
+  }
+
+  async deleteFolder(folderPath: string): Promise<FolderOperationResult> {
+    const response = await this.client.delete('/api/folders/delete?confirm=true', {
+      data: { folderPath },
+    });
+    return response.data;
+  }
+
+  async moveFolder(folderPath: string, data: MoveFolderRequest): Promise<FolderOperationResult> {
+    const response = await this.client.put('/api/folders/move', {
+      sourcePath: folderPath,
+      ...data,
+    });
+    return response.data;
+  }
+
+  async getFolderMetadata(folderPath: string): Promise<FolderMetadata> {
+    const response = await this.client.get('/api/folders/metadata', {
+      params: { folderPath },
+    });
+    return response.data;
+  }
+
+  async updateFolderMetadata(folderPath: string, metadata: Partial<FolderMetadata>): Promise<{ success: boolean; metadata: FolderMetadata }> {
+    const response = await this.client.put('/api/folders/metadata', {
+      folderPath,
+      metadata,
+    });
+    return response.data;
+  }
+
+  async moveNote(notePath: string, data: MoveNoteRequest): Promise<FolderOperationResult> {
+    const response = await this.client.post('/api/folders/notes/move', {
+      notePath,
+      ...data,
+    });
+    return response.data;
+  }
+
+  async bulkMoveNotes(data: BulkMoveRequest): Promise<BulkMoveResult> {
+    const response = await this.client.post('/api/folders/notes/bulk-move', data);
     return response.data;
   }
 }

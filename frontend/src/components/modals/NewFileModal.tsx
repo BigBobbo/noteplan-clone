@@ -1,17 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 import { useUIStore } from '../../store/uiStore';
 import { useFileStore } from '../../store/fileStore';
+import { useFolderStore } from '../../store/folderStore';
+import type { FolderNode } from '../../types';
 
 export const NewFileModal: React.FC = () => {
   const { newFileModalOpen, closeNewFileModal } = useUIStore();
   const { createFile } = useFileStore();
+  const { folders, loadFolders, selectedFolder } = useFolderStore();
 
   const [fileName, setFileName] = useState('');
-  const [folder, setFolder] = useState('Notes');
+  const [folder, setFolder] = useState(selectedFolder || 'Notes');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Load folders when modal opens
+  useEffect(() => {
+    if (newFileModalOpen && !folders) {
+      loadFolders();
+    }
+  }, [newFileModalOpen, folders, loadFolders]);
+
+  // Update selected folder when it changes
+  useEffect(() => {
+    if (selectedFolder) {
+      setFolder(selectedFolder);
+    }
+  }, [selectedFolder]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +66,50 @@ export const NewFileModal: React.FC = () => {
     setError('');
     closeNewFileModal();
   };
+
+  // Build flat list of all folders for dropdown
+  const folderOptions = useMemo(() => {
+    const options: Array<{ path: string; label: string; depth: number }> = [];
+
+    const traverse = (node: FolderNode, depth: number = 0) => {
+      if (!node) return;
+
+      // Add current node if it has a path (skip root)
+      if (node.path) {
+        const indent = '  '.repeat(depth);
+        options.push({
+          path: node.path,
+          label: `${indent}${node.name}`,
+          depth
+        });
+      }
+
+      // Add children
+      if (node.children && node.children.length > 0) {
+        node.children
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .forEach(child => traverse(child, depth + 1));
+      }
+    };
+
+    if (folders) {
+      traverse(folders);
+    }
+
+    // Ensure Notes, Calendar, Templates are at the top if they exist
+    const rootFolders = ['Notes', 'Calendar', 'Templates'];
+    const sorted = options.sort((a, b) => {
+      const aRoot = rootFolders.indexOf(a.path.split('/')[0]);
+      const bRoot = rootFolders.indexOf(b.path.split('/')[0]);
+
+      if (aRoot !== -1 && bRoot !== -1) return aRoot - bRoot;
+      if (aRoot !== -1) return -1;
+      if (bRoot !== -1) return 1;
+      return a.path.localeCompare(b.path);
+    });
+
+    return sorted;
+  }, [folders]);
 
   return (
     <Modal
@@ -93,13 +154,26 @@ export const NewFileModal: React.FC = () => {
             id="folder"
             value={folder}
             onChange={(e) => setFolder(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono text-sm"
             disabled={loading}
           >
-            <option value="Notes">Notes</option>
-            <option value="Calendar">Calendar</option>
-            <option value="Templates">Templates</option>
+            {folderOptions.length > 0 ? (
+              folderOptions.map((option) => (
+                <option key={option.path} value={option.path}>
+                  {option.label}
+                </option>
+              ))
+            ) : (
+              <>
+                <option value="Notes">Notes</option>
+                <option value="Calendar">Calendar</option>
+                <option value="Templates">Templates</option>
+              </>
+            )}
           </select>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Note will be created in: {folder}
+          </p>
         </div>
 
         {/* Error Message */}

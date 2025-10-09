@@ -17,6 +17,8 @@ import { TaskList } from '../tasks/TaskList';
 import { SearchBar } from '../search/SearchBar';
 import { BacklinkPanel } from '../links/BacklinkPanel';
 import { TemplateManager } from '../templates/TemplateManager';
+import { FolderTree } from '../folders/FolderTree';
+import { useFolderSync } from '../../hooks/useFolderSync';
 import clsx from 'clsx';
 
 type SidebarView = 'files' | 'tasks' | 'board' | 'search' | 'links' | 'templates';
@@ -29,6 +31,9 @@ export const Sidebar: React.FC = () => {
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(
     new Set(['Notes', 'Calendar'])
   );
+
+  // Sync folder changes via WebSocket
+  useFolderSync();
 
   useEffect(() => {
     loadFiles();
@@ -169,105 +174,7 @@ export const Sidebar: React.FC = () => {
       </div>
 
       {/* View Content */}
-      {currentView === 'files' && (
-        <>
-          {/* Search Bar */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search notes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm"
-              />
-            </div>
-          </div>
-
-          {/* File List */}
-          <div className="flex-1 overflow-y-auto p-2">
-            {loading ? (
-              <Loading size="sm" text="Loading files..." />
-            ) : Object.keys(filteredGroups).length === 0 ? (
-              <div className="p-4 text-center text-gray-500 dark:text-gray-400 text-sm">
-                {searchQuery ? 'No files found' : 'No files yet'}
-              </div>
-            ) : (
-              <div className="space-y-1">
-                {Object.entries(filteredGroups).map(([folder, folderFiles]) => (
-                  <div key={folder}>
-                    {/* Folder Header */}
-                    <button
-                      onClick={() => toggleFolder(folder)}
-                      className="w-full flex items-center gap-2 px-2 py-1.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors text-left"
-                    >
-                      {expandedFolders.has(folder) ? (
-                        <FolderOpenIcon className="h-4 w-4 text-amber-500" />
-                      ) : (
-                        <FolderIcon className="h-4 w-4 text-gray-500" />
-                      )}
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {folder}
-                      </span>
-                      <span className="text-xs text-gray-500 ml-auto">
-                        {folderFiles.length}
-                      </span>
-                    </button>
-
-                    {/* Files in Folder */}
-                    {expandedFolders.has(folder) && (
-                      <div className="ml-4 space-y-0.5 mt-0.5">
-                        {folderFiles.map((file) => {
-                          const isActive =
-                            currentFile?.metadata.path === file.path;
-
-                          return (
-                            <button
-                              key={file.path}
-                              onClick={() => handleFileClick(file.path)}
-                              className={clsx(
-                                'w-full flex items-start gap-2 px-2 py-1.5 rounded text-left transition-colors',
-                                isActive
-                                  ? 'bg-amber-100 dark:bg-amber-900'
-                                  : 'hover:bg-gray-200 dark:hover:bg-gray-800'
-                              )}
-                            >
-                              <DocumentTextIcon
-                                className={clsx(
-                                  'h-4 w-4 mt-0.5 flex-shrink-0',
-                                  isActive
-                                    ? 'text-amber-600 dark:text-amber-400'
-                                    : 'text-gray-400'
-                                )}
-                              />
-                              <div className="flex-1 min-w-0">
-                                <p
-                                  className={clsx(
-                                    'text-sm truncate',
-                                    isActive
-                                      ? 'font-semibold text-gray-900 dark:text-white'
-                                      : 'text-gray-700 dark:text-gray-300'
-                                  )}
-                                >
-                                  {file.name}
-                                </p>
-                                <p className="text-xs text-gray-500 dark:text-gray-500">
-                                  {formatRelativeTime(file.modified)}
-                                </p>
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </>
-      )}
+      {currentView === 'files' && <FolderTree />}
 
       {currentView === 'tasks' && (
         <div className="flex-1 overflow-hidden">
