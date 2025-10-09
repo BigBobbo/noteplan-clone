@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { Editor } from '../editor/Editor';
 import { TaskList } from '../tasks/TaskList';
 import { KanbanBoard } from '../kanban/KanbanBoard';
+import { ReferenceView } from '../references/ReferenceView';
 import {
   DocumentTextIcon,
   CheckCircleIcon,
   Squares2X2Icon,
+  LinkIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
-type MainViewType = 'editor' | 'tasks' | 'board';
+type MainViewType = 'editor' | 'tasks' | 'board' | 'references';
 
 export const MainView: React.FC = () => {
   const [currentView, setCurrentView] = useState<MainViewType>('editor');
@@ -54,6 +56,18 @@ export const MainView: React.FC = () => {
           <Squares2X2Icon className="h-4 w-4" />
           <span>Board</span>
         </button>
+        <button
+          onClick={() => setCurrentView('references')}
+          className={clsx(
+            'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2',
+            currentView === 'references'
+              ? 'text-amber-600 dark:text-amber-400 border-amber-600 dark:border-amber-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 border-transparent'
+          )}
+        >
+          <LinkIcon className="h-4 w-4" />
+          <span>References</span>
+        </button>
       </div>
 
       {/* View Content */}
@@ -65,6 +79,7 @@ export const MainView: React.FC = () => {
           </div>
         )}
         {currentView === 'board' && <KanbanBoard />}
+        {currentView === 'references' && <ReferenceView />}
       </div>
     </div>
   );

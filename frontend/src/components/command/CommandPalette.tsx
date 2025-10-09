@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { Command } from 'cmdk';
 import { useFileStore } from '../../store/fileStore';
 import { useUIStore } from '../../store/uiStore';
@@ -11,8 +10,6 @@ export const CommandPalette: React.FC = () => {
   const { files, openFile, createFile, currentFile, saveFile } = useFileStore();
   const { theme, toggleTheme, commandPaletteOpen, closeCommandPalette } = useUIStore();
   const { templates, insertTemplate } = useTemplates();
-
-  console.log('[CommandPalette] Render - commandPaletteOpen:', commandPaletteOpen);
 
   // Reset search when palette closes
   useEffect(() => {
@@ -57,30 +54,16 @@ export const CommandPalette: React.FC = () => {
   const handleInsertTemplate = async (templateId: string) => {
     if (!currentFile) return;
 
-    const { content: templateContent } = insertTemplate(templateId);
+    const templateContent = insertTemplate(templateId);
     const newContent = currentFile.content + '\n\n' + templateContent;
     await saveFile(currentFile.metadata.path, newContent);
     closeCommandPalette();
   };
 
-  if (!commandPaletteOpen) {
-    console.log('[CommandPalette] Not rendering - closed');
-    return null;
-  }
+  if (!commandPaletteOpen) return null;
 
-  console.log('[CommandPalette] Rendering modal...');
-
-  // Render to document.body using a portal
-  const modalContent = (
-    <div
-      id="command-palette-overlay"
-      className="fixed inset-0 z-[9999] flex items-start justify-center pt-20 bg-black/50"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          closeCommandPalette();
-        }
-      }}
-    >
+  return (
+    <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-black/50">
       <Command
         className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden"
         shouldFilter={true}
@@ -151,13 +134,13 @@ export const CommandPalette: React.FC = () => {
               {templates.map((template) => (
                 <Command.Item
                   key={template.id}
-                  value={template.title}
+                  value={template.name}
                   onSelect={() => handleInsertTemplate(template.id)}
                   className="flex items-center gap-3 px-3 py-2 text-sm rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
-                  <span>{template.icon || '📋'}</span>
+                  <span>📋</span>
                   <div className="flex-1 min-w-0">
-                    <div className="truncate">{template.title}</div>
+                    <div className="truncate">{template.name}</div>
                     {template.description && (
                       <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                         {template.description}
@@ -193,7 +176,4 @@ export const CommandPalette: React.FC = () => {
       </Command>
     </div>
   );
-
-  // Render to document.body using a portal
-  return createPortal(modalContent, document.body);
 };

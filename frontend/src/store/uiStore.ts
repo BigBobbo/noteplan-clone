@@ -57,26 +57,20 @@ export const useUIStore = create<UIStore>()(
 
       toggleTheme: () =>
         set((state) => {
-          const newTheme = state.theme === 'light' ? 'dark' : 'light';
+          // Cycle through themes: light → dark → ocean → light
+          const themeOrder: Theme[] = ['light', 'dark', 'ocean'];
+          const currentIndex = themeOrder.indexOf(state.theme);
+          const newTheme = themeOrder[(currentIndex + 1) % themeOrder.length];
 
-          // Update DOM
-          if (newTheme === 'dark') {
-            document.documentElement.classList.add('dark');
-          } else {
-            document.documentElement.classList.remove('dark');
-          }
+          // Update DOM with data-theme attribute
+          document.documentElement.setAttribute('data-theme', newTheme);
 
           return { theme: newTheme };
         }),
 
       setTheme: (theme) => {
-        // Update DOM
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
-        }
-
+        // Update DOM with data-theme attribute
+        document.documentElement.setAttribute('data-theme', theme);
         set({ theme });
       },
 
@@ -94,19 +88,9 @@ export const useUIStore = create<UIStore>()(
       closeSettingsModal: () => set({ settingsModalOpen: false }),
 
       toggleCommandPalette: () =>
-        set((state) => {
-          const newState = !state.commandPaletteOpen;
-          console.log('[uiStore] toggleCommandPalette:', state.commandPaletteOpen, '->', newState);
-          return { commandPaletteOpen: newState };
-        }),
-      openCommandPalette: () => {
-        console.log('[uiStore] openCommandPalette');
-        set({ commandPaletteOpen: true });
-      },
-      closeCommandPalette: () => {
-        console.log('[uiStore] closeCommandPalette');
-        set({ commandPaletteOpen: false });
-      },
+        set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
+      openCommandPalette: () => set({ commandPaletteOpen: true }),
+      closeCommandPalette: () => set({ commandPaletteOpen: false }),
     }),
     {
       name: 'noteplan-ui-storage',

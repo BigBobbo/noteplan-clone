@@ -8,7 +8,6 @@ import { useWebSocket } from './hooks/useWebSocket';
 import { useKeyboard } from './hooks/useKeyboard';
 import { useUIStore } from './store/uiStore';
 import { useFileStore } from './store/fileStore';
-import { Toaster } from 'react-hot-toast';
 
 function App() {
   const { theme } = useUIStore();
@@ -22,11 +21,8 @@ function App() {
 
   // Apply theme on mount
   useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
+    // Set data-theme attribute instead of class
+    document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
   // Initialize folders on mount
@@ -54,15 +50,6 @@ function App() {
 
         {/* Command Palette */}
         <CommandPalette />
-
-        {/* Toast Notifications */}
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            className: 'dark:bg-gray-800 dark:text-gray-100',
-            duration: 3000,
-          }}
-        />
 
         {/* Global Error Toast */}
         {error && (

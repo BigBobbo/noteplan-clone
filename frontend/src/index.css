@@ -1,6 +1,140 @@
 @import "tailwindcss";
 @import "./styles/wiki-links.css";
 
+/* Theme System - Define CSS Variables */
+@theme {
+  /* Default light theme colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f9fafb;
+  --color-bg-tertiary: #f3f4f6;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+  --color-border-primary: #e5e7eb;
+  --color-border-secondary: #d1d5db;
+  --color-accent: #f59e0b;
+  --color-accent-hover: #d97706;
+}
+
+/* Theme-specific overrides */
+@layer base {
+  /* Dark Theme */
+  [data-theme='dark'] {
+    --color-bg-primary: #1f2937;
+    --color-bg-secondary: #111827;
+    --color-bg-tertiary: #0f172a;
+    --color-text-primary: #f9fafb;
+    --color-text-secondary: #d1d5db;
+    --color-text-tertiary: #9ca3af;
+    --color-border-primary: #374151;
+    --color-border-secondary: #4b5563;
+    --color-accent: #fbbf24;
+    --color-accent-hover: #f59e0b;
+  }
+
+  /* Ocean Theme - Light blue background with green accents */
+  [data-theme='ocean'] {
+    --color-bg-primary: #dbeafe;      /* Light blue */
+    --color-bg-secondary: #bfdbfe;    /* Medium blue */
+    --color-bg-tertiary: #93c5fd;     /* Darker blue */
+    --color-text-primary: #1e3a8a;    /* Deep blue */
+    --color-text-secondary: #1e40af;  /* Blue */
+    --color-text-tertiary: #3b82f6;   /* Medium blue */
+    --color-border-primary: #93c5fd;  /* Blue border */
+    --color-border-secondary: #60a5fa; /* Darker blue border */
+    --color-accent: #10b981;          /* Green accent */
+    --color-accent-hover: #059669;    /* Darker green */
+  }
+
+  /* Ocean Theme - Override backgrounds and colors */
+  [data-theme='ocean'] {
+    background-color: #dbeafe;
+    color: #1e3a8a;
+  }
+
+  [data-theme='ocean'] body {
+    background-color: #dbeafe;
+    color: #1e3a8a;
+  }
+
+  /* Ocean theme component overrides */
+  [data-theme='ocean'] header,
+  [data-theme='ocean'] .bg-white {
+    background-color: #bfdbfe !important;
+  }
+
+  [data-theme='ocean'] .bg-gray-50,
+  [data-theme='ocean'] .bg-gray-100 {
+    background-color: #93c5fd !important;
+  }
+
+  [data-theme='ocean'] .bg-gray-200 {
+    background-color: #60a5fa !important;
+  }
+
+  [data-theme='ocean'] .bg-gray-800,
+  [data-theme='ocean'] .bg-gray-900 {
+    background-color: #3b82f6 !important;
+  }
+
+  [data-theme='ocean'] .text-gray-900,
+  [data-theme='ocean'] .text-gray-800 {
+    color: #1e3a8a !important;
+  }
+
+  [data-theme='ocean'] .text-gray-600,
+  [data-theme='ocean'] .text-gray-700 {
+    color: #1e40af !important;
+  }
+
+  [data-theme='ocean'] .text-gray-500 {
+    color: #3b82f6 !important;
+  }
+
+  [data-theme='ocean'] .text-gray-400,
+  [data-theme='ocean'] .text-gray-300 {
+    color: #60a5fa !important;
+  }
+
+  [data-theme='ocean'] .border-gray-200,
+  [data-theme='ocean'] .border-gray-300 {
+    border-color: #93c5fd !important;
+  }
+
+  [data-theme='ocean'] .border-gray-700 {
+    border-color: #3b82f6 !important;
+  }
+
+  /* Ocean theme hover states */
+  [data-theme='ocean'] .hover\:bg-gray-100:hover {
+    background-color: #93c5fd !important;
+  }
+
+  [data-theme='ocean'] .hover\:bg-gray-200:hover {
+    background-color: #60a5fa !important;
+  }
+
+  /* Ocean theme accent colors (green) */
+  [data-theme='ocean'] .bg-amber-500,
+  [data-theme='ocean'] .bg-amber-600 {
+    background-color: #10b981 !important;
+  }
+
+  [data-theme='ocean'] .text-amber-600 {
+    color: #10b981 !important;
+  }
+
+  [data-theme='ocean'] .bg-amber-100 {
+    background-color: #d1fae5 !important;
+  }
+}
+
+/* Redefine dark variant to work with data-theme */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Add ocean variant for ocean-specific styles */
+@custom-variant ocean (&:where([data-theme="ocean"], [data-theme="ocean"] *));
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -62,6 +196,10 @@ body {
   font-family: 'Courier New', monospace;
 }
 
-.dark .ProseMirror code {
+[data-theme='dark'] .ProseMirror code {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='ocean'] .ProseMirror code {
+  background-color: rgba(30, 58, 138, 0.1);
 }

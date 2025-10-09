@@ -1,30 +1,20 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   MoonIcon,
   SunIcon,
   Bars3Icon,
   PlusIcon,
   CalendarIcon,
-  MagnifyingGlassIcon,
-  BoltIcon,
-  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useUIStore } from '../../store/uiStore';
 import { useCalendarStore } from '../../store/calendarStore';
 import { Button } from '../common/Button';
-import { QuickCapture } from '../modals/QuickCapture';
-import { KeyboardShortcuts } from '../modals/KeyboardShortcuts';
 
 export const Header: React.FC = () => {
-  const { theme, toggleTheme, toggleSidebar, openNewFileModal, openCommandPalette } = useUIStore();
+  const { theme, toggleTheme, toggleSidebar, openNewFileModal } = useUIStore();
   const { showTimeline, toggleTimeline } = useCalendarStore();
-  const [quickCaptureOpen, setQuickCaptureOpen] = useState(false);
-  const [shortcutsOpen, setShortcutsOpen] = useState(false);
 
   return (
-    <>
-      <QuickCapture isOpen={quickCaptureOpen} onClose={() => setQuickCaptureOpen(false)} />
-      <KeyboardShortcuts isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
     <header className="h-14 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 flex items-center justify-between">
       {/* Left side */}
       <div className="flex items-center gap-3">
@@ -43,24 +33,6 @@ export const Header: React.FC = () => {
 
       {/* Right side */}
       <div className="flex items-center gap-2">
-        {/* Command Palette */}
-        <button
-          onClick={openCommandPalette}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-          title="Command Palette (Cmd+K)"
-        >
-          <MagnifyingGlassIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-        </button>
-
-        {/* Quick Capture */}
-        <button
-          onClick={() => setQuickCaptureOpen(true)}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-          title="Quick Capture (Cmd+Shift+N)"
-        >
-          <BoltIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-        </button>
-
         {/* New Note Button */}
         <Button
           onClick={openNewFileModal}
@@ -71,9 +43,6 @@ export const Header: React.FC = () => {
           <PlusIcon className="h-4 w-4" />
           <span className="hidden sm:inline">New Note</span>
         </Button>
-
-        {/* Divider */}
-        <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
 
         {/* Calendar/Timeline Toggle */}
         <button
@@ -90,29 +59,21 @@ export const Header: React.FC = () => {
           }`} />
         </button>
 
-        {/* Keyboard Shortcuts Help */}
-        <button
-          onClick={() => setShortcutsOpen(true)}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-          title="Keyboard Shortcuts (?)"
-        >
-          <QuestionMarkCircleIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-        </button>
-
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-          title="Toggle Theme (Cmd+Shift+D)"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 ocean:hover:bg-blue-300 rounded transition-colors"
+          title={`Current: ${theme} (Cmd+Shift+D to cycle)`}
         >
           {theme === 'dark' ? (
             <SunIcon className="h-5 w-5 text-gray-300" />
+          ) : theme === 'ocean' ? (
+            <span className="text-xl">🌊</span>
           ) : (
             <MoonIcon className="h-5 w-5 text-gray-600" />
           )}
         </button>
       </div>
     </header>
-    </>
   );
 };

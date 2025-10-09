@@ -1,81 +1,57 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
+  getAllTemplates,
+  getTemplate as getBuiltInTemplate,
   renderTemplate,
   type Template,
 } from '../services/templateService';
 import { useTemplateStore } from '../store/templateStore';
 
 export const useTemplates = () => {
-  const {
-    templates,
-    recentTemplates,
-    loading,
-    loadTemplates,
-    getTemplate,
-    getTemplateByTrigger,
-    createTemplate,
-    updateTemplate,
-    deleteTemplate,
-    addToRecent,
-    getTemplatesByCategory,
-    searchTemplates,
-  } = useTemplateStore();
+  const { customTemplates, addTemplate, updateTemplate, deleteTemplate } = useTemplateStore();
 
-  // Load templates on mount
-  useEffect(() => {
-    loadTemplates();
-  }, [loadTemplates]);
+  const builtInTemplates = getAllTemplates();
+
+  // Combine built-in and custom templates
+  const templates = useMemo(
+    () => [...builtInTemplates, ...customTemplates],
+    [builtInTemplates, customTemplates]
+  );
 
   const insertTemplate = useCallback(
-    (templateId: string, values: Record<string, any> = {}): { content: string; cursorOffset?: number } => {
-      const template = getTemplate(templateId);
+    (templateId: string, values: Record<string, any> = {}): string => {
+      // Try to find in built-in templates first
+      let template = getBuiltInTemplate(templateId);
+
+      // If not found, try custom templates
+      if (!template) {
+        template = customTemplates.find((t) => t.id === templateId);
+      }
 
       if (!template) {
         throw new Error(`Template not found: ${templateId}`);
       }
 
-      addToRecent(templateId);
       return renderTemplate(template, values);
     },
-    [getTemplate, addToRecent]
+    [customTemplates]
   );
 
-  const insertTemplateByTrigger = useCallback(
-    (trigger: string, values: Record<string, any> = {}): { content: string; cursorOffset?: number } | null => {
-      const template = getTemplateByTrigger(trigger);
-
-      if (!template) {
-        return null;
-      }
-
-      addToRecent(template.id);
-      return renderTemplate(template, values);
+  const getTemplateById = useCallback(
+    (templateId: string): Template | undefined => {
+      return templates.find((t) => t.id === templateId);
     },
-    [getTemplateByTrigger, addToRecent]
-  );
-
-  const getRecentTemplates = useCallback(
-    (): Template[] => {
-      return recentTemplates
-        .map((id) => getTemplate(id))
-        .filter((t): t is Template => t !== undefined);
-    },
-    [recentTemplates, getTemplate]
+    [templates]
   );
 
   return {
     templates,
-    loading,
-    recentTemplates: getRecentTemplates(),
+    builtInTemplates,
+    customTemplates,
     insertTemplate,
-    insertTemplateByTrigger,
-    getTemplate,
-    getTemplateByTrigger,
-    createTemplate,
+    getTemplateById,
+    addTemplate,
     updateTemplate,
     deleteTemplate,
-    getTemplatesByCategory,
-    searchTemplates,
-    loadTemplates,
   };
 };

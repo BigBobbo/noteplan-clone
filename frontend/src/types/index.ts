@@ -60,7 +60,7 @@ export interface FolderTree {
 
 // UI State Types
 export type EditorMode = 'wysiwyg' | 'source' | 'split';
-export type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'ocean';
 
 // WebSocket Event Types
 export interface FileChangedEvent {
@@ -153,4 +153,44 @@ export interface LinkedTask extends Task {
   references?: TaskReference[];  // Which daily notes reference this
   isReference?: boolean;          // Is this a reference link itself?
   originalTaskId?: string;       // If reference, points to original
+}
+
+// Reference Types for Tag References Feature
+export interface Reference {
+  id: string;
+  type: 'tag' | 'wikilink' | 'unlinked' | 'task';
+  sourceFile: string;
+  sourceName: string;
+  targetName: string;
+  line: number;
+  context: string[];
+  matchText: string;
+  dateModified: Date;
+  isDaily: boolean;
+}
+
+export interface ParsedTag {
+  tag: string;
+  line: number;
+  startIndex: number;
+  endIndex: number;
+}
+
+export type SortOption = 'modified' | 'created' | 'filename' | 'count';
+
+export interface ReferenceFilters {
+  types: Array<'tag' | 'wikilink' | 'unlinked' | 'task'>;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+  fileTypes: Array<'daily' | 'note' | 'template'>;
+  folders: string[];
+}
+
+export interface ReferenceOptions {
+  includeUnlinked?: boolean;
+  caseSensitive?: boolean;
+  contextLines?: number;
+  minMentionLength?: number;
 }
