@@ -5,13 +5,20 @@ import {
   Bars3Icon,
   PlusIcon,
   CalendarIcon,
+  CommandLineIcon,
 } from '@heroicons/react/24/outline';
 import { useUIStore } from '../../store/uiStore';
 import { useCalendarStore } from '../../store/calendarStore';
 import { Button } from '../common/Button';
 
 export const Header: React.FC = () => {
-  const { theme, toggleTheme, toggleSidebar, openNewFileModal } = useUIStore();
+  const {
+    theme,
+    toggleTheme,
+    toggleSidebar,
+    openNewFileModal,
+    toggleCommandPalette,
+  } = useUIStore();
   const { showTimeline, toggleTimeline } = useCalendarStore();
 
   return (
@@ -43,6 +50,15 @@ export const Header: React.FC = () => {
           <PlusIcon className="h-4 w-4" />
           <span className="hidden sm:inline">New Note</span>
         </Button>
+
+        {/* Command Palette (includes file switcher and commands) */}
+        <button
+          onClick={toggleCommandPalette}
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+          title="Command Palette - Search files and run commands (Cmd+K or Cmd+P)"
+        >
+          <CommandLineIcon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+        </button>
 
         {/* Calendar/Timeline Toggle */}
         <button
