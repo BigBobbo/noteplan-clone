@@ -7,6 +7,7 @@ import {
   CheckCircleIcon,
   LinkIcon,
   DocumentDuplicateIcon,
+  Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 import { useFileStore } from '../../store/fileStore';
 import { useUIStore } from '../../store/uiStore';
@@ -18,7 +19,7 @@ import { BacklinkPanel } from '../links/BacklinkPanel';
 import { TemplateManager } from '../templates/TemplateManager';
 import clsx from 'clsx';
 
-type SidebarView = 'files' | 'tasks' | 'search' | 'links' | 'templates';
+type SidebarView = 'files' | 'tasks' | 'board' | 'search' | 'links' | 'templates';
 
 export const Sidebar: React.FC = () => {
   const { files, loading, loadFiles, openFile, currentFile } = useFileStore();
@@ -116,6 +117,18 @@ export const Sidebar: React.FC = () => {
         >
           <CheckCircleIcon className="h-4 w-4" />
           <span>Tasks</span>
+        </button>
+        <button
+          onClick={() => setCurrentView('board')}
+          className={clsx(
+            'flex-1 px-2 py-2.5 text-xs font-medium transition-colors flex flex-col items-center justify-center gap-1 min-w-[60px]',
+            currentView === 'board'
+              ? 'text-amber-600 dark:text-amber-400 border-b-2 border-amber-600 dark:border-amber-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+          )}
+        >
+          <Squares2X2Icon className="h-4 w-4" />
+          <span>Board</span>
         </button>
         <button
           onClick={() => setCurrentView('search')}
@@ -271,6 +284,15 @@ export const Sidebar: React.FC = () => {
       {currentView === 'links' && (
         <div className="flex-1 overflow-hidden">
           <BacklinkPanel />
+        </div>
+      )}
+
+      {currentView === 'board' && (
+        <div className="flex-1 overflow-hidden p-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="mb-2">Board view is available in the main editor area.</p>
+            <p>Use the tabs above the editor to switch between Editor, Tasks, and Board views.</p>
+          </div>
         </div>
       )}
 

@@ -1,0 +1,28 @@
+---
+title: Weekly Review
+description: End-of-week reflection and planning
+trigger: /weekly
+category: Productivity
+icon: 📊
+---
+
+# Weekly Review - {{date:MMM d, yyyy}}
+
+## Completed This Week
+*
+
+## Lessons Learned
+*
+
+## Next Week Priorities
+* [P1]
+* [P2]
+* [P3]
+
+## Metrics
+- Tasks completed:
+- Hours focused:
+- Energy level:
+
+## Notes
+{{cursor}}

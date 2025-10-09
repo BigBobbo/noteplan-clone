@@ -16,6 +16,7 @@ const socketHandler = require('./websocket/socketHandler');
 const fileRoutes = require('./routes/fileRoutes');
 const folderRoutes = require('./routes/folderRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
+const boardRoutes = require('./routes/boardRoutes');
 
 // Middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -61,6 +62,7 @@ app.get('/health', (req, res) => {
 app.use('/api/files', fileRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api/calendar', calendarRoutes);
+app.use('/api/boards', boardRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -72,7 +74,8 @@ app.get('/', (req, res) => {
       health: '/health',
       files: '/api/files',
       folders: '/api/folders',
-      calendar: '/api/calendar'
+      calendar: '/api/calendar',
+      boards: '/api/boards'
     },
     documentation: 'See README.md for API documentation'
   });

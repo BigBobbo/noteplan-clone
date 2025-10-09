@@ -1,7 +1,7 @@
 import React from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import { Editor } from '../editor/Editor';
+import { MainView } from './MainView';
 import { NewFileModal } from '../modals/NewFileModal';
 import { DeleteConfirm } from '../modals/DeleteConfirm';
 import { DateNavigator } from '../calendar/DateNavigator';
@@ -50,7 +50,7 @@ export const Layout: React.FC = () => {
           <DateNavigator />
 
           <div className="flex-1 flex overflow-hidden">
-            <Editor />
+            <MainView />
 
             {/* Right sidebar with mini calendar and timeline */}
             {showTimeline && (

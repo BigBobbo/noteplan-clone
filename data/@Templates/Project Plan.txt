@@ -1,0 +1,39 @@
+---
+title: Project Plan
+description: Template for planning a new project
+trigger: /project
+category: Projects
+icon: 🚀
+---
+
+# Project: {{title}}
+
+**Start Date:** {{date:yyyy-MM-dd}}
+
+## Overview
+{{cursor}}
+
+## Goals
+* [ ]
+* [ ]
+* [ ]
+
+## Key Milestones
+1.
+2.
+3.
+
+## Resources Needed
+*
+
+## Timeline
+- Week 1:
+- Week 2:
+- Week 3:
+- Week 4:
+
+## Risks & Mitigation
+*
+
+## Success Criteria
+*

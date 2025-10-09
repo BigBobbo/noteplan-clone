@@ -98,3 +98,59 @@ export interface InitFoldersResponse {
   success: boolean;
   created: string[];
 }
+
+// Kanban Board Types
+export interface KanbanColumn {
+  id: string;
+  name: string;
+  tagFilter: string;  // e.g., "status-todo", "waiting", "review"
+  color?: string;
+  limit?: number;     // WIP limit (optional)
+  order: number;
+}
+
+export interface KanbanBoard {
+  id: string;
+  name: string;
+  columns: KanbanColumn[];
+  filterTags?: string[];  // Show only tasks with these tags
+  sortBy?: 'priority' | 'date' | 'manual';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BoardConfig {
+  boards: KanbanBoard[];
+  activeBoard: string;
+  version: number;
+}
+
+export interface BoardResponse {
+  boards: KanbanBoard[];
+  activeBoard: string;
+}
+
+// Task Reference Types for Phase 3
+export interface TaskReference {
+  id: string;
+  taskId: string;        // Original task ID (file:line)
+  sourceFile: string;    // Where original task lives
+  date: Date;            // Date referenced in
+  timeBlock?: TimeBlockRef; // If time-blocked
+  type: 'reference' | 'timeblock';
+  createdAt: Date;
+}
+
+export interface TimeBlockRef {
+  id: string;
+  start: string;    // "09:00" (24-hour format)
+  end: string;      // "11:00"
+  duration: number; // minutes (auto-calculated)
+  taskRef?: string; // Reference to task
+}
+
+export interface LinkedTask extends Task {
+  references?: TaskReference[];  // Which daily notes reference this
+  isReference?: boolean;          // Is this a reference link itself?
+  originalTaskId?: string;       // If reference, points to original
+}

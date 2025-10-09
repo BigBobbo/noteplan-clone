@@ -1,25 +1,47 @@
 import { useTasks } from '../../hooks/useTasks';
-import { TaskItem } from './TaskItem';
+import { TaskTreeItem } from './TaskTreeItem';
 import { TaskFilters } from './TaskFilters';
+import type { ParsedTask } from '../../services/taskService';
 
 export const TaskList: React.FC = () => {
   const { tasks, allTasks, filter, setFilter, toggleTask, rescheduleTask } =
     useTasks();
 
+  // Recursively count tasks
+  const countTasks = (tasks: ParsedTask[]): number => {
+    return tasks.reduce((count, task) => {
+      return count + 1 + countTasks(task.children);
+    }, 0);
+  };
+
+  // Recursively count tasks matching a filter
+  const countFilteredTasks = (
+    tasks: ParsedTask[],
+    filterFn: (task: ParsedTask) => boolean
+  ): number => {
+    return tasks.reduce((count, task) => {
+      const matches = filterFn(task) ? 1 : 0;
+      return count + matches + countFilteredTasks(task.children, filterFn);
+    }, 0);
+  };
+
   // Calculate counts for each filter
   const taskCounts = {
-    all: allTasks.length,
-    active: allTasks.filter((t) => !t.completed && !t.cancelled).length,
-    completed: allTasks.filter((t) => t.completed).length,
-    today: allTasks.filter((t) => {
+    all: countTasks(allTasks),
+    active: countFilteredTasks(
+      allTasks,
+      (t) => !t.completed && !t.cancelled
+    ),
+    completed: countFilteredTasks(allTasks, (t) => t.completed),
+    today: countFilteredTasks(allTasks, (t) => {
       if (!t.date) return false;
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const taskDate = new Date(t.date);
       taskDate.setHours(0, 0, 0, 0);
       return taskDate.getTime() === today.getTime();
-    }).length,
-    scheduled: allTasks.filter((t) => t.date !== undefined).length,
+    }),
+    scheduled: countFilteredTasks(allTasks, (t) => t.date !== undefined),
   };
 
   const handleReschedule = (taskId: string) => {
@@ -54,7 +76,7 @@ export const TaskList: React.FC = () => {
         ) : (
           <div className="space-y-1">
             {tasks.map((task) => (
-              <TaskItem
+              <TaskTreeItem
                 key={task.id}
                 task={task}
                 onToggle={toggleTask}

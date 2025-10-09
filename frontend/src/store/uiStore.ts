@@ -94,9 +94,19 @@ export const useUIStore = create<UIStore>()(
       closeSettingsModal: () => set({ settingsModalOpen: false }),
 
       toggleCommandPalette: () =>
-        set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
-      openCommandPalette: () => set({ commandPaletteOpen: true }),
-      closeCommandPalette: () => set({ commandPaletteOpen: false }),
+        set((state) => {
+          const newState = !state.commandPaletteOpen;
+          console.log('[uiStore] toggleCommandPalette:', state.commandPaletteOpen, '->', newState);
+          return { commandPaletteOpen: newState };
+        }),
+      openCommandPalette: () => {
+        console.log('[uiStore] openCommandPalette');
+        set({ commandPaletteOpen: true });
+      },
+      closeCommandPalette: () => {
+        console.log('[uiStore] closeCommandPalette');
+        set({ commandPaletteOpen: false });
+      },
     }),
     {
       name: 'noteplan-ui-storage',

@@ -1,4 +1,5 @@
 import React, { useRef, useEffect } from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import { useCalendarStore } from '../../store/calendarStore';
 import { useFileStore } from '../../store/fileStore';
 import { TimeBlock } from './TimeBlock';
@@ -8,10 +9,18 @@ import { isCalendarFile } from '../../utils/dateUtils';
 const HOUR_HEIGHT = 60; // pixels per hour
 
 export const Timeline: React.FC = () => {
-  const { timeBlocks, refreshTimeBlocks } = useCalendarStore();
+  const { timeBlocks, refreshTimeBlocks, currentDate } = useCalendarStore();
   const { currentFile } = useFileStore();
   const timelineRef = useRef<HTMLDivElement>(null);
   const hours = generateHourSlots();
+
+  const { setNodeRef: setTimelineRef, isOver } = useDroppable({
+    id: 'timeline',
+    data: {
+      type: 'timeline',
+      date: currentDate,
+    },
+  });
 
   // Scroll to current time on mount
   useEffect(() => {
@@ -50,7 +59,11 @@ export const Timeline: React.FC = () => {
       {/* Timeline */}
       <div ref={timelineRef} className="flex-1 overflow-y-auto relative">
         {/* Hour slots */}
-        <div className="relative" style={{ height: `${24 * HOUR_HEIGHT}px` }}>
+        <div
+          ref={setTimelineRef}
+          className="relative"
+          style={{ height: `${24 * HOUR_HEIGHT}px` }}
+        >
           {hours.map((hour) => (
             <div
               key={hour}
@@ -84,6 +97,15 @@ export const Timeline: React.FC = () => {
           >
             <div className="absolute -top-1 -left-1 w-2 h-2 rounded-full bg-red-500" />
           </div>
+
+          {/* Drop indicator overlay */}
+          {isOver && (
+            <div className="absolute inset-0 bg-blue-500 bg-opacity-10 border-2 border-dashed border-blue-500 pointer-events-none z-20 flex items-center justify-center">
+              <div className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg">
+                Drop to create time block
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

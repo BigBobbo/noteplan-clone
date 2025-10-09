@@ -1,13 +1,17 @@
 import matter from 'gray-matter';
 import { format } from 'date-fns';
+import api from './api';
 
 export interface Template {
   id: string;
-  name: string;
-  content: string;
-  variables: string[];
-  type: 'note' | 'daily' | 'meeting' | 'project';
+  title: string;
   description?: string;
+  trigger?: string;  // e.g., "/weekly"
+  category?: string;
+  icon?: string;
+  content: string;
+  filePath: string;
+  variables: string[];
 }
 
 /**
@@ -15,22 +19,28 @@ export interface Template {
  */
 export const parseTemplate = (
   content: string,
-  id: string = 'template'
+  filePath: string
 ): Template => {
   // Extract frontmatter if present
   const { data, content: body } = matter(content);
 
-  // Find variables in template ({{variable}})
-  const variableRegex = /\{\{(\w+)\}\}/g;
-  const variables = [...body.matchAll(variableRegex)].map((m) => m[1]);
+  // Find variables in template ({{variable}} or {{variable:format}})
+  const variableRegex = /\{\{([^}]+)\}\}/g;
+  const variables = [...body.matchAll(variableRegex)].map((m) => m[1].split(':')[0]);
+
+  // Generate ID from file path
+  const id = filePath.replace(/@Templates\//, '').replace(/\.txt$/, '').toLowerCase().replace(/\s+/g, '-');
 
   return {
     id,
-    name: data.title || 'Untitled Template',
-    content: body,
-    variables: [...new Set(variables)],
-    type: data.type || 'note',
+    title: data.title || filePath.replace(/@Templates\//, '').replace(/\.txt$/, ''),
     description: data.description,
+    trigger: data.trigger,
+    category: data.category || 'Uncategorized',
+    icon: data.icon || '📄',
+    content: body,
+    filePath,
+    variables: [...new Set(variables)],
   };
 };
 
@@ -40,164 +50,136 @@ export const parseTemplate = (
 export const renderTemplate = (
   template: Template,
   values: Record<string, any> = {}
-): string => {
+): { content: string; cursorOffset?: number } => {
   let rendered = template.content;
+  const now = new Date();
 
-  // Add default values for common variables
-  const defaultValues: Record<string, string> = {
-    date: format(new Date(), 'yyyy-MM-dd'),
-    time: format(new Date(), 'HH:mm'),
-    datetime: format(new Date(), 'yyyy-MM-dd HH:mm'),
-    today: format(new Date(), 'EEEE, MMMM d, yyyy'),
-    year: format(new Date(), 'yyyy'),
-    month: format(new Date(), 'MMMM'),
-    day: format(new Date(), 'd'),
-  };
-
-  const allValues = { ...defaultValues, ...values };
-
-  // Replace all variables
-  template.variables.forEach((variable) => {
-    const value = allValues[variable] || '';
-    rendered = rendered.replace(
-      new RegExp(`\\{\\{${variable}\\}\\}`, 'g'),
-      value
-    );
+  // Handle date variables with custom formats: {{date:FORMAT}}
+  rendered = rendered.replace(/\{\{date:([^}]+)\}\}/g, (_, formatStr) => {
+    return format(now, formatStr);
   });
 
-  return rendered;
+  // Handle standard date/time variables
+  rendered = rendered.replace(/\{\{date\}\}/g, format(now, 'yyyy-MM-dd'));
+  rendered = rendered.replace(/\{\{time\}\}/g, format(now, 'HH:mm'));
+  rendered = rendered.replace(/\{\{day\}\}/g, format(now, 'EEEE'));
+  rendered = rendered.replace(/\{\{week\}\}/g, format(now, 'w'));
+  rendered = rendered.replace(/\{\{month\}\}/g, format(now, 'MMMM'));
+  rendered = rendered.replace(/\{\{year\}\}/g, format(now, 'yyyy'));
+
+  // Handle special variables
+  // Note: {{selection}} and {{clipboard}} will be handled by the editor integration
+
+  // Handle custom variables provided by user
+  Object.entries(values).forEach(([key, value]) => {
+    rendered = rendered.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), String(value));
+  });
+
+  // Find cursor position before removing cursor marker
+  const cursorMatch = rendered.match(/\{\{cursor\}\}/);
+  const cursorOffset = cursorMatch?.index;
+
+  // Remove cursor marker
+  rendered = rendered.replace(/\{\{cursor\}\}/g, '');
+
+  return { content: rendered, cursorOffset };
 };
 
 /**
- * Built-in templates
+ * Load templates from @Templates folder
  */
-export const builtInTemplates: Template[] = [
-  {
-    id: 'daily-note',
-    name: 'Daily Note',
-    type: 'daily',
-    description: 'Standard daily note template',
-    variables: ['date', 'today'],
-    content: `# {{today}}
+export const loadTemplates = async (): Promise<Template[]> => {
+  try {
+    const response = await api.listFiles('@Templates');
+    const templates: Template[] = [];
 
-## Tasks
-*
+    for (const file of response.files) {
+      try {
+        const fileData = await api.getFile(file.path);
+        const template = parseTemplate(fileData.content, file.path);
+        templates.push(template);
+      } catch (error) {
+        console.error(`Failed to load template from ${file.path}:`, error);
+      }
+    }
 
-## Notes
-
-## Journal
-
-`,
-  },
-  {
-    id: 'meeting-notes',
-    name: 'Meeting Notes',
-    type: 'meeting',
-    description: 'Template for meeting notes',
-    variables: ['title', 'date', 'attendees'],
-    content: `# {{title}}
-
-**Date:** {{date}}
-**Attendees:** {{attendees}}
-
-## Agenda
-
-## Discussion
-
-## Action Items
-*
-
-## Next Steps
-
-`,
-  },
-  {
-    id: 'project',
-    name: 'Project',
-    type: 'project',
-    description: 'Project planning template',
-    variables: ['project_name', 'date'],
-    content: `# {{project_name}}
-
-**Created:** {{date}}
-
-## Overview
-
-## Goals
-*
-
-## Tasks
-*
-
-## Resources
-
-## Timeline
-
-## Notes
-
-`,
-  },
-  {
-    id: 'weekly-review',
-    name: 'Weekly Review',
-    type: 'note',
-    description: 'Weekly reflection template',
-    variables: ['date'],
-    content: `# Weekly Review - {{date}}
-
-## Accomplishments
-*
-
-## Challenges
-*
-
-## Learnings
-*
-
-## Next Week's Focus
-*
-
-## Gratitude
-*
-
-`,
-  },
-  {
-    id: 'book-notes',
-    name: 'Book Notes',
-    type: 'note',
-    description: 'Template for taking book notes',
-    variables: ['book_title', 'author', 'date'],
-    content: `# {{book_title}} by {{author}}
-
-**Started:** {{date}}
-
-## Key Takeaways
-*
-
-## Summary
-
-## Favorite Quotes
-
-## My Thoughts
-
-## Action Items
-*
-
-`,
-  },
-];
-
-/**
- * Get a template by ID
- */
-export const getTemplate = (id: string): Template | undefined => {
-  return builtInTemplates.find((t) => t.id === id);
+    return templates;
+  } catch (error) {
+    console.error('Failed to load templates:', error);
+    return [];
+  }
 };
 
 /**
- * Get all templates
+ * Create a new template file
  */
-export const getAllTemplates = (): Template[] => {
-  return builtInTemplates;
+export const createTemplate = async (
+  title: string,
+  content: string,
+  metadata?: Partial<Template>
+): Promise<Template> => {
+  const frontmatter: Record<string, any> = {
+    title,
+    description: metadata?.description,
+    trigger: metadata?.trigger,
+    category: metadata?.category || 'Uncategorized',
+    icon: metadata?.icon || '📄',
+  };
+
+  // Remove undefined values
+  Object.keys(frontmatter).forEach(key => {
+    if (frontmatter[key] === undefined) {
+      delete frontmatter[key];
+    }
+  });
+
+  const yamlStr = Object.entries(frontmatter)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join('\n');
+
+  const fileContent = `---\n${yamlStr}\n---\n\n${content}`;
+  const filePath = `@Templates/${title}.txt`;
+
+  await api.saveFile(filePath, fileContent);
+
+  return parseTemplate(fileContent, filePath);
+};
+
+/**
+ * Update an existing template
+ */
+export const updateTemplate = async (
+  filePath: string,
+  updates: Partial<Template>
+): Promise<Template> => {
+  const fileData = await api.getFile(filePath);
+  const { data, content: body } = matter(fileData.content);
+
+  const updatedFrontmatter = {
+    ...data,
+    title: updates.title || data.title,
+    description: updates.description !== undefined ? updates.description : data.description,
+    trigger: updates.trigger !== undefined ? updates.trigger : data.trigger,
+    category: updates.category || data.category,
+    icon: updates.icon || data.icon,
+  };
+
+  const yamlStr = Object.entries(updatedFrontmatter)
+    .filter(([_, value]) => value !== undefined)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join('\n');
+
+  const updatedContent = updates.content || body;
+  const fileContent = `---\n${yamlStr}\n---\n\n${updatedContent}`;
+
+  await api.saveFile(filePath, fileContent);
+
+  return parseTemplate(fileContent, filePath);
+};
+
+/**
+ * Delete a template
+ */
+export const deleteTemplate = async (filePath: string): Promise<void> => {
+  await api.deleteFile(filePath);
 };

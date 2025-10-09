@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useDroppable } from '@dnd-kit/core';
 import { useCalendarStore } from '../../store/calendarStore';
 import {
   getCalendarMonthGrid,
@@ -8,6 +9,69 @@ import {
   isSameDay
 } from '../../utils/dateUtils';
 import clsx from 'clsx';
+
+interface DateCellProps {
+  date: Date;
+  isCurrentMonth: boolean;
+  isTodayDate: boolean;
+  isSelected: boolean;
+  onDayClick: (date: Date) => void;
+}
+
+const DateCell: React.FC<DateCellProps> = ({
+  date,
+  isCurrentMonth,
+  isTodayDate,
+  isSelected,
+  onDayClick,
+}) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `date-${date.toISOString()}`,
+    data: {
+      type: 'date-cell',
+      date,
+    },
+  });
+
+  return (
+    <button
+      ref={setNodeRef}
+      onClick={() => onDayClick(date)}
+      className={clsx(
+        'relative px-2 py-3 text-center border-r border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors',
+        {
+          'text-gray-400 dark:text-gray-600': !isCurrentMonth,
+          'text-gray-900 dark:text-white': isCurrentMonth,
+          'bg-blue-50 dark:bg-blue-900/20': isSelected,
+          'font-bold': isTodayDate,
+          'ring-2 ring-blue-400 ring-inset bg-blue-100 dark:bg-blue-900/40': isOver,
+        }
+      )}
+    >
+      {/* Day number */}
+      <div
+        className={clsx(
+          'inline-flex items-center justify-center w-8 h-8 rounded-full',
+          {
+            'bg-blue-600 text-white': isTodayDate,
+            'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800': isSelected && !isTodayDate,
+          }
+        )}
+      >
+        {formatDayOfMonth(date)}
+      </div>
+
+      {/* Drop indicator */}
+      {isOver && (
+        <div className="absolute inset-0 border-2 border-blue-500 rounded-sm pointer-events-none">
+          <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+            Drop to schedule
+          </div>
+        </div>
+      )}
+    </button>
+  );
+};
 
 export const CalendarView: React.FC = () => {
   const { currentDate, setDate } = useCalendarStore();
@@ -42,38 +106,14 @@ export const CalendarView: React.FC = () => {
           const isSelected = isSameDay(date, currentDate);
 
           return (
-            <button
+            <DateCell
               key={index}
-              onClick={() => handleDayClick(date)}
-              className={clsx(
-                'relative px-2 py-3 text-center border-r border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors',
-                {
-                  'text-gray-400 dark:text-gray-600': !isCurrentMonth,
-                  'text-gray-900 dark:text-white': isCurrentMonth,
-                  'bg-blue-50 dark:bg-blue-900/20': isSelected,
-                  'font-bold': isTodayDate,
-                }
-              )}
-            >
-              {/* Day number */}
-              <div
-                className={clsx(
-                  'inline-flex items-center justify-center w-8 h-8 rounded-full',
-                  {
-                    'bg-blue-600 text-white': isTodayDate,
-                    'ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-gray-800': isSelected && !isTodayDate,
-                  }
-                )}
-              >
-                {formatDayOfMonth(date)}
-              </div>
-
-              {/* Indicator for notes (dot) */}
-              {/* TODO: Add logic to show dot if note exists for this date */}
-              {/* <div className="absolute bottom-1 left-1/2 transform -translate-x-1/2">
-                <div className="w-1 h-1 rounded-full bg-blue-500"></div>
-              </div> */}
-            </button>
+              date={date}
+              isCurrentMonth={isCurrentMonth}
+              isTodayDate={isTodayDate}
+              isSelected={isSelected}
+              onDayClick={handleDayClick}
+            />
           );
         })}
       </div>

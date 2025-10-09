@@ -2,8 +2,7 @@ import React, { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
+// Removed TaskList and TaskItem - they conflict with our NotePlan-style tasks
 import { Markdown } from 'tiptap-markdown';
 import { Loading } from '../common/Loading';
 import { WikiLink } from '../../extensions/WikiLink';
@@ -52,14 +51,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           class: 'wiki-link-decoration',
         },
       }),
-      TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
+      // Removed TaskList/TaskItem - we handle tasks in the sidebar
       Markdown.configure({
         html: true,
         tightLists: true,
-        bulletListMarker: '+',
+        bulletListMarker: '*',  // Changed from '+' to '*' for task compatibility
         breaks: true,
         transformPastedText: true,
         transformCopiedText: true,
@@ -71,7 +67,9 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     editable: !readOnly,
     onUpdate: ({ editor }) => {
       const markdown = ((editor.storage as any).markdown as any).getMarkdown();
-      onChange(wikiLinkMarkdownTransformer.postProcess(markdown));
+      const processed = wikiLinkMarkdownTransformer.postProcess(markdown);
+      console.log('Editor saving markdown:', processed); // Debug log
+      onChange(processed);
     },
     editorProps: {
       attributes: {

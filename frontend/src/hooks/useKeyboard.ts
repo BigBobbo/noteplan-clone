@@ -1,86 +1,143 @@
-import { useEffect } from 'react';
-import { matchesShortcut, GLOBAL_SHORTCUTS, CALENDAR_SHORTCUTS } from '../utils/shortcuts';
+import { useEffect, useRef } from 'react';
+import { useHotkeys } from 'react-hotkeys-hook';
 import { useUIStore } from '../store/uiStore';
 import { useFileStore } from '../store/fileStore';
 import { useCalendarStore } from '../store/calendarStore';
 
 export function useKeyboard() {
-  const { toggleSidebar, toggleTheme, openNewFileModal, toggleCommandPalette } = useUIStore();
+  const { toggleSidebar, toggleTheme, openNewFileModal, commandPaletteOpen, openCommandPalette, closeCommandPalette } = useUIStore();
   const { currentFile, saveFile } = useFileStore();
   const { goToToday, goToPrevious, goToNext, toggleTimeline } = useCalendarStore();
 
+  // Debounce protection
+  const lastCmdKPress = useRef<number>(0);
+
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Command Palette (Cmd/Ctrl+K)
-      if (matchesShortcut(event, GLOBAL_SHORTCUTS.COMMAND_PALETTE)) {
-        event.preventDefault();
-        toggleCommandPalette();
-        return;
-      }
+    console.log('[useKeyboard] Keyboard shortcuts registered');
+  }, []);
 
-      // New note (Cmd/Ctrl+N)
-      if (matchesShortcut(event, GLOBAL_SHORTCUTS.NEW_NOTE)) {
-        event.preventDefault();
-        openNewFileModal();
-        return;
-      }
+  // Command Palette (Cmd/Ctrl+K) - state-based with debounce
+  useHotkeys('mod+k', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
 
-      // Save (Cmd/Ctrl+S)
-      if (matchesShortcut(event, GLOBAL_SHORTCUTS.SAVE)) {
-        event.preventDefault();
-        if (currentFile) {
-          saveFile(currentFile.metadata.path, currentFile.content);
-        }
-        return;
-      }
+    const now = Date.now();
+    const timeSinceLast = now - lastCmdKPress.current;
 
-      // Toggle sidebar (Cmd/Ctrl+B)
-      if (matchesShortcut(event, GLOBAL_SHORTCUTS.TOGGLE_SIDEBAR)) {
-        event.preventDefault();
-        toggleSidebar();
-        return;
-      }
+    console.log('[useKeyboard] Cmd+K pressed, state:', commandPaletteOpen, 'timeSince:', timeSinceLast);
 
-      // Toggle theme (Cmd/Ctrl+Shift+D)
-      if (matchesShortcut(event, GLOBAL_SHORTCUTS.TOGGLE_THEME)) {
-        event.preventDefault();
-        toggleTheme();
-        return;
-      }
+    // Debounce: ignore rapid successive calls
+    if (timeSinceLast < 200) {
+      console.log('[useKeyboard] Cmd+K BLOCKED by debounce');
+      return;
+    }
 
-      // Go to today (Cmd/Ctrl+T)
-      if (matchesShortcut(event, CALENDAR_SHORTCUTS.GO_TO_TODAY)) {
-        event.preventDefault();
-        goToToday();
-        return;
-      }
+    lastCmdKPress.current = now;
 
-      // Previous day (Cmd/Ctrl+Shift+[)
-      if (matchesShortcut(event, CALENDAR_SHORTCUTS.PREVIOUS_DAY)) {
-        event.preventDefault();
-        goToPrevious();
-        return;
-      }
+    // Toggle based on current state
+    if (commandPaletteOpen) {
+      closeCommandPalette();
+    } else {
+      openCommandPalette();
+    }
+  }, {
+    keydown: true,
+    keyup: false,
+    preventDefault: true,
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+  }, [commandPaletteOpen, openCommandPalette, closeCommandPalette]);
 
-      // Next day (Cmd/Ctrl+Shift+])
-      if (matchesShortcut(event, CALENDAR_SHORTCUTS.NEXT_DAY)) {
-        event.preventDefault();
-        goToNext();
-        return;
-      }
+  // New note (Cmd/Ctrl+N)
+  useHotkeys('mod+n', (e) => {
+    console.log('[useKeyboard] Cmd+N pressed');
+    e.preventDefault();
+    e.stopPropagation();
+    openNewFileModal();
+  }, {
+    keydown: true,
+    keyup: false,
+    preventDefault: true,
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+  }, [openNewFileModal]);
 
-      // Toggle timeline (Cmd/Ctrl+L)
-      if (matchesShortcut(event, CALENDAR_SHORTCUTS.TOGGLE_TIMELINE)) {
-        event.preventDefault();
-        toggleTimeline();
-        return;
-      }
-    };
+  // Save (Cmd/Ctrl+S)
+  useHotkeys('mod+s', (e) => {
+    console.log('[useKeyboard] Cmd+S pressed');
+    e.preventDefault();
+    if (currentFile) {
+      saveFile(currentFile.metadata.path, currentFile.content);
+    }
+  }, {
+    preventDefault: true,
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+  }, [currentFile, saveFile]);
 
-    document.addEventListener('keydown', handleKeyDown);
+  // Toggle sidebar (Cmd/Ctrl+B)
+  useHotkeys('mod+b', (e) => {
+    console.log('[useKeyboard] Cmd+B pressed');
+    e.preventDefault();
+    toggleSidebar();
+  }, {
+    preventDefault: true,
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+  }, [toggleSidebar]);
 
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [currentFile, openNewFileModal, toggleSidebar, toggleTheme, saveFile, goToToday, goToPrevious, goToNext, toggleTimeline, toggleCommandPalette]);
+  // Toggle theme (Cmd/Ctrl+Shift+D)
+  useHotkeys('mod+shift+d', (e) => {
+    console.log('[useKeyboard] Cmd+Shift+D pressed');
+    e.preventDefault();
+    toggleTheme();
+  }, {
+    preventDefault: true,
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+  }, [toggleTheme]);
+
+  // Go to today (Cmd/Ctrl+T)
+  useHotkeys('mod+t', (e) => {
+    console.log('[useKeyboard] Cmd+T pressed');
+    e.preventDefault();
+    goToToday();
+  }, {
+    preventDefault: true,
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+  }, [goToToday]);
+
+  // Previous day (Cmd/Ctrl+Shift+[)
+  useHotkeys('mod+shift+[', (e) => {
+    console.log('[useKeyboard] Cmd+Shift+[ pressed');
+    e.preventDefault();
+    goToPrevious();
+  }, {
+    preventDefault: true,
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+  }, [goToPrevious]);
+
+  // Next day (Cmd/Ctrl+Shift+])
+  useHotkeys('mod+shift+]', (e) => {
+    console.log('[useKeyboard] Cmd+Shift+] pressed');
+    e.preventDefault();
+    goToNext();
+  }, {
+    preventDefault: true,
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+  }, [goToNext]);
+
+  // Toggle timeline (Cmd/Ctrl+L)
+  useHotkeys('mod+l', (e) => {
+    console.log('[useKeyboard] Cmd+L pressed');
+    e.preventDefault();
+    toggleTimeline();
+  }, {
+    preventDefault: true,
+    enableOnFormTags: true,
+    enableOnContentEditable: true,
+  }, [toggleTimeline]);
 }

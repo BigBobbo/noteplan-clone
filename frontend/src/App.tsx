@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { DragDropProvider } from './components/DragDropProvider';
 import { Layout } from './components/layout/Layout';
 import { NewFileModal } from './components/modals/NewFileModal';
 import { DeleteConfirm } from './components/modals/DeleteConfirm';
@@ -7,6 +8,7 @@ import { useWebSocket } from './hooks/useWebSocket';
 import { useKeyboard } from './hooks/useKeyboard';
 import { useUIStore } from './store/uiStore';
 import { useFileStore } from './store/fileStore';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const { theme } = useUIStore();
@@ -41,41 +43,52 @@ function App() {
   }, []);
 
   return (
-    <div className="App">
-      {/* Main Layout */}
-      <Layout />
+    <DragDropProvider>
+      <div className="App">
+        {/* Main Layout */}
+        <Layout />
 
-      {/* Modals */}
-      <NewFileModal />
-      <DeleteConfirm />
+        {/* Modals */}
+        <NewFileModal />
+        <DeleteConfirm />
 
-      {/* Command Palette */}
-      <CommandPalette />
+        {/* Command Palette */}
+        <CommandPalette />
 
-      {/* Global Error Toast */}
-      {error && (
-        <div className="fixed bottom-4 right-4 z-50 max-w-sm">
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 shadow-lg">
-            <div className="flex items-start gap-3">
-              <div className="flex-1">
-                <p className="text-sm font-medium text-red-800 dark:text-red-200">
-                  Error
-                </p>
-                <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                  {error}
-                </p>
+        {/* Toast Notifications */}
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            className: 'dark:bg-gray-800 dark:text-gray-100',
+            duration: 3000,
+          }}
+        />
+
+        {/* Global Error Toast */}
+        {error && (
+          <div className="fixed bottom-4 right-4 z-50 max-w-sm">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 shadow-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-red-800 dark:text-red-200">
+                    Error
+                  </p>
+                  <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                    {error}
+                  </p>
+                </div>
+                <button
+                  onClick={clearError}
+                  className="text-red-400 hover:text-red-500"
+                >
+                  ×
+                </button>
               </div>
-              <button
-                onClick={clearError}
-                className="text-red-400 hover:text-red-500"
-              >
-                ×
-              </button>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </DragDropProvider>
   );
 }
 

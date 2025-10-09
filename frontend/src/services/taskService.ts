@@ -8,17 +8,88 @@ export interface ParsedTask extends Task {
   cancelled: boolean;
   canceled: boolean; // Alias for compatibility
   important: boolean;
+  priority?: 1 | 2 | 3 | 4;  // NEW: Priority level
   date?: Date;
   mentions: string[];
   tags: string[];
   line: number;
   file: string;
+
+  // NEW: Nesting support
+  parentId?: string;
+  children: ParsedTask[];
+  depth: number;
 }
+
+/**
+ * Extract priority level from tags (#p1-#p4)
+ */
+export const extractPriority = (tags: string[]): 1 | 2 | 3 | 4 | undefined => {
+  const priorityTag = tags.find((tag) => /^p[1-4]$/.test(tag));
+  if (priorityTag) {
+    return parseInt(priorityTag[1]) as 1 | 2 | 3 | 4;
+  }
+  return undefined;
+};
+
+/**
+ * Calculate indentation level (4 spaces or 1 tab = 1 level)
+ */
+export const calculateIndentLevel = (line: string): number => {
+  const match = line.match(/^(\s*)/);
+  if (!match) return 0;
+  const spaces = match[1];
+  // Count tabs as 4 spaces
+  const normalizedSpaces = spaces.replace(/\t/g, '    ');
+  return Math.floor(normalizedSpaces.length / 4);
+};
+
+/**
+ * Build hierarchical task structure from flat list with depth info
+ */
+export const buildTaskHierarchy = (tasks: ParsedTask[]): ParsedTask[] => {
+  if (tasks.length === 0) return [];
+
+  const rootTasks: ParsedTask[] = [];
+  const stack: ParsedTask[] = [];
+
+  tasks.forEach((task) => {
+    // Initialize children array
+    task.children = [];
+    task.parentId = undefined;
+
+    if (task.depth === 0) {
+      // Root level task
+      rootTasks.push(task);
+      stack.length = 0;
+      stack.push(task);
+    } else {
+      // Find parent in stack
+      // Pop stack until we find a parent at depth-1
+      while (stack.length > 0 && stack[stack.length - 1].depth >= task.depth) {
+        stack.pop();
+      }
+
+      if (stack.length > 0) {
+        const parent = stack[stack.length - 1];
+        task.parentId = parent.id;
+        parent.children.push(task);
+      } else {
+        // No valid parent found, treat as root
+        rootTasks.push(task);
+      }
+
+      stack.push(task);
+    }
+  });
+
+  return rootTasks;
+};
 
 /**
  * Parse a single line to extract task information
  * Supports formats:
- * * Task name                    # Open task
+ * * Task name (or + Task name)  # Open task (both * and + supported)
  * * [x] Completed task          # Completed
  * * [>] Scheduled/forwarded     # Moved to future date
  * * [-] Cancelled task          # Cancelled
@@ -32,8 +103,12 @@ export const parseTask = (
   lineNumber: number,
   filePath: string
 ): ParsedTask | null => {
-  const taskRegex = /^\* (\[([xX>\-!])\] )?(.+)$/;
-  const match = line.trim().match(taskRegex);
+  // Calculate depth before trimming
+  const depth = calculateIndentLevel(line);
+
+  // Support both * and + for task markers (standard markdown)
+  const taskRegex = /^\s*[*+] (\[([xX>\-!])\] )?(.+)$/;
+  const match = line.match(taskRegex);
 
   if (!match) return null;
 
@@ -49,6 +124,9 @@ export const parseTask = (
   // Extract tags (#tag)
   const tags = [...text.matchAll(/#([a-zA-Z0-9_-]+)/g)].map((m) => m[1]);
 
+  // Extract priority from tags
+  const priority = extractPriority(tags);
+
   // Clean text by removing date reference
   const cleanText = text.replace(/>(\d{4}-\d{2}-\d{2})/, '').trim();
 
@@ -62,16 +140,20 @@ export const parseTask = (
     cancelled: isCancelled,
     canceled: isCancelled, // Alias for compatibility
     important: status === '!',
+    priority,
     date: scheduledDate,
     mentions,
     tags,
     line: lineNumber,
     file: filePath,
+    depth,
+    children: [],
+    parentId: undefined,
   };
 };
 
 /**
- * Parse all tasks from file content
+ * Parse all tasks from file content and build hierarchy
  */
 export const parseTasksFromContent = (
   content: string,
@@ -87,7 +169,8 @@ export const parseTasksFromContent = (
     }
   });
 
-  return tasks;
+  // Build hierarchical structure
+  return buildTaskHierarchy(tasks);
 };
 
 /**
@@ -136,13 +219,13 @@ export const toggleTaskInContent = (
 
   if (!line) return content;
 
-  // Check if currently completed
-  const isCompleted = /^\* \[[xX]\]/.test(line.trim());
+  // Support both * and + markers
+  const isCompleted = /^\s*[*+] \[[xX]\]/.test(line);
 
-  // Toggle the status
+  // Toggle the status - preserve original marker and indentation
   const newLine = isCompleted
-    ? line.replace(/^\* \[[xX]\]/, '* ')
-    : line.replace(/^\*/, '* [x]');
+    ? line.replace(/^(\s*[*+]) \[[xX]\]/, '$1')
+    : line.replace(/^(\s*)([*+])/, '$1$2 [x]');
 
   lines[lineNumber] = newLine;
   return lines.join('\n');

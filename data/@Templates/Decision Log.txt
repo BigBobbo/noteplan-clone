@@ -1,0 +1,40 @@
+---
+title: Decision Log
+description: Template for documenting important decisions
+trigger: /decision
+category: Productivity
+icon: 🎯
+---
+
+# Decision: {{title}}
+
+**Date:** {{date:MMMM d, yyyy}}
+**Decided by:** {{author}}
+
+## Context
+{{cursor}}
+
+## Options Considered
+1.
+2.
+3.
+
+## Decision
+*
+
+## Rationale
+*
+
+## Consequences
+**Positive:**
+*
+
+**Negative:**
+*
+
+**Risks:**
+*
+
+## Action Items
+* [ ]
+* [ ]
