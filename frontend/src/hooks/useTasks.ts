@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useFileStore } from '../store/fileStore';
 import { useTaskStore } from '../store/taskStore';
 import { useLinkStore } from '../store/linkStore';
-import { useCalendarStore } from '../store/calendarStore';
+import { useTaskOrderStore } from '../store/taskOrderStore';
 import {
   parseTasksFromContent,
   toggleTaskInContent,
@@ -15,25 +15,44 @@ import type { TimeBlockRef, TaskReference } from '../types';
 import { api } from '../services/api';
 
 export const useTasks = () => {
-  const { currentFile, saveFile, loadFile } = useFileStore();
+  const { currentFile, saveFile } = useFileStore();
   const { tasks, setTasks, filter, setFilter, getFilteredTasks } =
     useTaskStore();
   const { addTaskReference } = useLinkStore();
 
-  // Parse tasks from current file
+  // Subscribe to taskRanks for current file
+  const taskRanks = useTaskOrderStore((state) =>
+    currentFile ? state.taskRanks.get(currentFile.metadata.path) : undefined
+  );
+
+  // Load ranks from storage when file path changes
   useEffect(() => {
-    // Parse current file tasks
+    if (currentFile) {
+      const { loadFromStorage } = useTaskOrderStore.getState();
+      loadFromStorage(currentFile.metadata.path);
+    }
+  }, [currentFile?.metadata.path]);
+
+  // Parse tasks from current file and apply ranks
+  useEffect(() => {
     if (currentFile) {
       console.log('Parsing tasks from file:', currentFile.metadata.path);
       console.log('File content length:', currentFile.content.length);
+
+      const filePath = currentFile.metadata.path;
       const fileTasks = parseTasksFromContent(
         currentFile.content,
-        currentFile.metadata.path
+        filePath
       );
-      console.log('Parsed tasks:', fileTasks.length, fileTasks);
-      setTasks(fileTasks);
+
+      // Apply ranks to tasks (taskRanks from hook subscription)
+      const tasksWithRanks = applyRanksToTasks(fileTasks, taskRanks);
+
+      console.log('Parsed tasks:', tasksWithRanks.length, tasksWithRanks);
+      setTasks(tasksWithRanks);
     }
-  }, [currentFile, setTasks]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentFile?.metadata.path, currentFile?.content, taskRanks]);
 
   const toggleTask = async (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
@@ -155,4 +174,20 @@ function appendToSection(
   lines.splice(insertIndex, 0, line);
 
   return lines.join('\n');
+}
+
+/**
+ * Apply ranks to tasks recursively
+ */
+function applyRanksToTasks(
+  tasks: ParsedTask[],
+  ranks?: Map<string, number>
+): ParsedTask[] {
+  if (!ranks) return tasks;
+
+  return tasks.map((task) => ({
+    ...task,
+    rank: ranks.get(task.id),
+    children: applyRanksToTasks(task.children, ranks),
+  }));
 }

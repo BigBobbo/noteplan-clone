@@ -8,17 +8,20 @@ export interface ParsedTask extends Task {
   cancelled: boolean;
   canceled: boolean; // Alias for compatibility
   important: boolean;
-  priority?: 1 | 2 | 3 | 4;  // NEW: Priority level
+  priority?: 1 | 2 | 3 | 4;  // Priority level
   date?: Date;
   mentions: string[];
   tags: string[];
   line: number;
   file: string;
 
-  // NEW: Nesting support
+  // Nesting support
   parentId?: string;
   children: ParsedTask[];
   depth: number;
+
+  // Custom ordering support
+  rank?: number;
 }
 
 /**

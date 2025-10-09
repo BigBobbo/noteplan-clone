@@ -4,6 +4,8 @@ import clsx from 'clsx';
 import type { ParsedTask } from '../../services/taskService';
 import { PriorityBadge } from './PriorityBadge';
 import { useTaskStore } from '../../store/taskStore';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface TaskTreeItemProps {
   task: ParsedTask;
@@ -20,18 +22,47 @@ export const TaskTreeItem: React.FC<TaskTreeItemProps> = ({
   const hasChildren = task.children && task.children.length > 0;
   const isExpanded = isTaskExpanded(task.id);
 
+  // Only enable drag-and-drop for root-level tasks
+  const isRootTask = task.depth === 0;
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: task.id,
+    disabled: !isRootTask, // Disable dragging for child tasks
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    cursor: isRootTask ? 'grab' : 'default',
+  };
+
   const handleExpand = (e: React.MouseEvent) => {
     e.stopPropagation();
     toggleSubtasks(task.id);
   };
 
   return (
-    <div className="task-tree-item">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="task-tree-item"
+    >
       {/* Main task row */}
       <div
+        {...(isRootTask ? attributes : {})}
+        {...(isRootTask ? listeners : {})}
         className={clsx(
           'flex items-start gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors',
-          task.depth > 0 && 'ml-6' // Indent by depth
+          task.depth > 0 && 'ml-6', // Indent by depth
+          isDragging && 'bg-blue-50 dark:bg-blue-900/20'
         )}
         style={{ paddingLeft: `${task.depth * 24}px` }}
       >

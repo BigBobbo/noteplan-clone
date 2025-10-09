@@ -2,10 +2,32 @@ import { useTasks } from '../../hooks/useTasks';
 import { TaskTreeItem } from './TaskTreeItem';
 import { TaskFilters } from './TaskFilters';
 import type { ParsedTask } from '../../services/taskService';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import type { DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { useTaskOrderStore } from '../../store/taskOrderStore';
+import { useFileStore } from '../../store/fileStore';
+import { useState, useEffect, useMemo } from 'react';
 
 export const TaskList: React.FC = () => {
   const { tasks, allTasks, filter, setFilter, toggleTask, rescheduleTask } =
     useTasks();
+  const { reorderTasks } = useTaskOrderStore();
+  const { currentFile } = useFileStore();
+
+  // Only root-level tasks can be reordered
+  const rootTasks = useMemo(() => {
+    return tasks.filter(task => task.depth === 0);
+  }, [tasks]);
+
+  // Sort tasks by rank (memoized to avoid re-renders)
+  const sortedTasks = useMemo(() => {
+    return [...rootTasks].sort((a, b) => {
+      const rankA = a.rank ?? a.line;
+      const rankB = b.rank ?? b.line;
+      return rankA - rankB;
+    });
+  }, [rootTasks]);
 
   // Recursively count tasks
   const countTasks = (tasks: ParsedTask[]): number => {
@@ -51,6 +73,29 @@ export const TaskList: React.FC = () => {
     rescheduleTask(taskId, today);
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id || !currentFile) return;
+
+    const oldIndex = sortedTasks.findIndex((t) => t.id === active.id);
+    const newIndex = sortedTasks.findIndex((t) => t.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newOrder = arrayMove(sortedTasks, oldIndex, newIndex);
+
+    // Update ranks in store (this will trigger a re-render via useTasks)
+    reorderTasks(currentFile.metadata.path, newOrder);
+  };
+
+  const handleResetOrder = () => {
+    if (!currentFile) return;
+
+    const { resetOrder } = useTaskOrderStore.getState();
+    resetOrder(currentFile.metadata.path);
+  };
+
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-900">
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -62,11 +107,12 @@ export const TaskList: React.FC = () => {
       <TaskFilters
         currentFilter={filter}
         onFilterChange={setFilter}
+        onResetOrder={handleResetOrder}
         taskCounts={taskCounts}
       />
 
       <div className="flex-1 overflow-y-auto p-2">
-        {tasks.length === 0 ? (
+        {sortedTasks.length === 0 ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
             <p className="text-sm">No tasks found</p>
             <p className="text-xs mt-1">
@@ -74,16 +120,26 @@ export const TaskList: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="space-y-1">
-            {tasks.map((task) => (
-              <TaskTreeItem
-                key={task.id}
-                task={task}
-                onToggle={toggleTask}
-                onReschedule={handleReschedule}
-              />
-            ))}
-          </div>
+          <DndContext
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={sortedTasks.map((t) => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-1">
+                {sortedTasks.map((task) => (
+                  <TaskTreeItem
+                    key={task.id}
+                    task={task}
+                    onToggle={toggleTask}
+                    onReschedule={handleReschedule}
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         )}
       </div>
     </div>
