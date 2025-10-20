@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./styles/wiki-links.css";
+@import "./styles/tasks.css";
 
 /* Theme System - Define CSS Variables */
 @theme {
@@ -202,4 +203,234 @@ body {
 
 [data-theme='ocean'] .ProseMirror code {
   background-color: rgba(30, 58, 138, 0.1);
+}
+
+/* ========================================
+   WHITESPACE & INDENTATION PRESERVATION
+   ======================================== */
+
+/* Preserve whitespace in editor content */
+.ProseMirror {
+  white-space: pre-wrap;  /* Preserve spaces, wrap lines */
+  tab-size: 4;            /* Make tabs = 4 spaces */
+  -moz-tab-size: 4;
+}
+
+/* Specifically for paragraphs within lists (task details) */
+.ProseMirror li > p,
+.ProseMirror li > div {
+  white-space: pre-wrap;
+  margin: 0.25rem 0;
+}
+
+/* Preserve indentation in code blocks */
+.ProseMirror pre,
+.ProseMirror code {
+  white-space: pre-wrap;
+  tab-size: 4;
+  -moz-tab-size: 4;
+}
+
+/* Ensure nested lists show indentation visually */
+.ProseMirror ul ul,
+.ProseMirror ol ul,
+.ProseMirror ul ol,
+.ProseMirror ol ol {
+  margin-left: 1.5em;
+}
+
+/* ========================================
+   TASK vs BULLET DISTINCTION
+   ======================================== */
+
+/* Task items - ONLY items with [data-is-task] get checkboxes */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"] {
+  position: relative;
+  padding-left: 2em;
+  list-style: none;
+  margin: 0.5rem 0;
+  min-height: 1.5em;
+  transition: background-color 0.15s ease;
+}
+
+/* Checkbox icon ONLY for tasks */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"]::before {
+  content: "☐";
+  position: absolute;
+  left: 0.25em;
+  top: 0.1em;
+  font-size: 1.2em;
+  color: #f59e0b;  /* Amber - matches app accent */
+  font-weight: bold;
+  line-height: 1;
+  transition: all 0.15s ease;
+  user-select: none;
+  cursor: pointer;  /* Show it's clickable */
+}
+
+/* Regular bullet items - NO checkbox, use standard bullets */
+.ProseMirror ul:not([data-type="taskList"]) > li:not([data-is-task]) {
+  position: relative;
+  margin: 0.5rem 0;
+  list-style: disc;  /* Standard bullet point */
+  margin-left: 1.5em;
+}
+
+/* Hover effect ONLY on tasks */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"]:hover {
+  background-color: rgba(249, 250, 251, 0.5);
+  border-radius: 0.25rem;
+  padding-right: 0.5rem;
+}
+
+[data-theme='dark'] .ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"]:hover {
+  background-color: rgba(55, 65, 81, 0.3);
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"]:hover::before {
+  color: #d97706;  /* Darker orange on hover */
+  transform: scale(1.15);
+}
+
+/* Nested task/list indentation */
+.ProseMirror ul:not([data-type="taskList"]) ul {
+  margin-left: 2em;
+  margin-top: 0.5rem;
+  border-left: 2px solid rgba(249, 115, 22, 0.2);
+  padding-left: 0.5rem;
+}
+
+[data-theme='dark'] .ProseMirror ul:not([data-type="taskList"]) ul {
+  border-left-color: rgba(251, 146, 60, 0.3);
+}
+
+/* Task tags styling */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"] a[href^="#"] {
+  background-color: rgba(245, 158, 11, 0.1);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+[data-theme='dark'] .ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"] a[href^="#"] {
+  background-color: rgba(245, 158, 11, 0.15);
+}
+
+/* ========================================
+   TASK STATE-SPECIFIC STYLING
+   ======================================== */
+
+/* Completed tasks - [x] or [X] */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="completed"]::before {
+  content: "☑";  /* Checked checkbox */
+  color: #9ca3af;  /* Gray */
+  opacity: 0.8;
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="completed"] {
+  opacity: 0.5;
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="completed"] > * {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
+[data-theme='dark'] .ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="completed"] > * {
+  color: #9ca3af;
+}
+
+/* Cancelled tasks - [-] */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="cancelled"]::before {
+  content: "☒";  /* X checkbox */
+  color: #ef4444;  /* Red */
+  opacity: 0.8;
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="cancelled"] {
+  opacity: 0.6;
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="cancelled"] > * {
+  text-decoration: line-through;
+  color: #b91c1c;  /* Dark red */
+}
+
+[data-theme='dark'] .ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="cancelled"] > * {
+  color: #f87171;  /* Light red for dark mode */
+}
+
+/* Scheduled/In-progress tasks - [>] */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="scheduled"]::before {
+  content: "◷";  /* Clock/timer symbol */
+  color: #3b82f6;  /* Blue */
+  font-size: 1.3em;
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="scheduled"] > * {
+  color: #1e40af;  /* Dark blue */
+  font-weight: 500;
+}
+
+[data-theme='dark'] .ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="scheduled"] > * {
+  color: #93c5fd;  /* Light blue for dark mode */
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="scheduled"] {
+  background-color: rgba(59, 130, 246, 0.05);
+  border-radius: 0.25rem;
+  padding-right: 0.5rem;
+}
+
+[data-theme='dark'] .ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="scheduled"] {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+/* Important tasks - [!] */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="important"]::before {
+  content: "☐";  /* Same checkbox but styled differently */
+  color: #dc2626;  /* Bright red */
+  font-weight: 900;
+  font-size: 1.3em;
+  text-shadow: 0 0 2px rgba(220, 38, 38, 0.5);
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="important"] > * {
+  color: #991b1b;  /* Dark red */
+  font-weight: 600;
+}
+
+[data-theme='dark'] .ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="important"] > * {
+  color: #fca5a5;  /* Light red for dark mode */
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="important"] {
+  background-color: rgba(220, 38, 38, 0.05);
+  border-radius: 0.25rem;
+  padding-right: 0.5rem;
+  border-left: 3px solid #dc2626;
+  padding-left: 1.8em;
+}
+
+[data-theme='dark'] .ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="important"] {
+  background-color: rgba(220, 38, 38, 0.15);
+}
+
+/* Hover states for stateful tasks */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="scheduled"]:hover::before,
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="important"]:hover::before {
+  transform: scale(1.2);
+}
+
+/* Disable hover effects on completed/cancelled tasks */
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="completed"]:hover,
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="cancelled"]:hover {
+  background-color: transparent;
+}
+
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="completed"]:hover::before,
+.ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="cancelled"]:hover::before {
+  transform: none;
 }

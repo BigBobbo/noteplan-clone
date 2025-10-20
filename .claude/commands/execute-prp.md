@@ -24,6 +24,8 @@ Implement a feature using using the PRP file.
    - Implement all the code
 
 4. **Validate**
+   - Create automated tests for all new features added
+   - Use something like puppeteer to automatically manually test the changes 
    - Run each validation command
    - Fix any failures
    - Re-run until all pass

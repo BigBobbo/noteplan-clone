@@ -13,6 +13,7 @@ import { useTasks } from '../hooks/useTasks';
 import { useFileStore } from '../store/fileStore';
 import { useTaskOrderStore } from '../store/taskOrderStore';
 import { useCalendarStore } from '../store/calendarStore';
+import { useGlobalTaskStore } from '../store/globalTaskStore';
 import { KanbanCard } from './kanban/KanbanCard';
 import type { ParsedTask } from '../services/taskService';
 import type { KanbanColumn } from '../types';

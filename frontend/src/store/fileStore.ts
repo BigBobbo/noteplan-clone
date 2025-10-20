@@ -58,7 +58,25 @@ export const useFileStore = create<FileStore>((set, get) => ({
   openFile: async (path: string) => {
     try {
       set({ loading: true, error: null });
-      const fileData = await api.getFile(path);
+      let fileData = await api.getFile(path);
+
+      // Check if migration to GFM format is needed
+      const { hasLegacyFormat, migrateToGFMFormat } = await import('../utils/migrateToGFMFormat');
+
+      if (hasLegacyFormat(fileData.content)) {
+        console.log(`[fileStore] Migrating ${path} to GFM format`);
+        const migratedContent = migrateToGFMFormat(fileData.content);
+
+        // Save migrated content
+        await api.saveFile(path, migratedContent);
+
+        // Update fileData with migrated content
+        fileData = {
+          ...fileData,
+          content: migratedContent,
+        };
+      }
+
       set({ currentFile: fileData, loading: false });
     } catch (error: any) {
       set({ error: error.message, loading: false });

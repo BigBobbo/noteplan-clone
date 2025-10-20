@@ -2,11 +2,11 @@ import React, { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-// Removed TaskList and TaskItem - they conflict with our NotePlan-style tasks
 import { Markdown } from 'tiptap-markdown';
 import { Loading } from '../common/Loading';
 import { WikiLink } from '../../extensions/WikiLink';
 import { wikiLinkMarkdownTransformer } from '../../extensions/WikiLinkMarkdown';
+import { NotePlanExtensions, noteplanTaskMarkdownTransformer } from '../../extensions/noteplan';
 import { useFileStore } from '../../store/fileStore';
 import { resolveLink } from '../../services/linkService';
 
@@ -38,7 +38,35 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         heading: {
           levels: [1, 2, 3],
         },
+        // Keep listItem enabled for regular lists
+        listItem: true,
+        bulletList: {
+          HTMLAttributes: {
+            class: 'list-disc ml-4',
+          },
+        },
+        orderedList: {
+          HTMLAttributes: {
+            class: 'list-decimal ml-4',
+          },
+        },
+        // Keep code blocks enabled for proper markdown
+        codeBlock: {
+          HTMLAttributes: {
+            class: 'bg-gray-100 dark:bg-gray-900 p-4 rounded',
+          },
+        },
+        // Re-enable useful features
+        horizontalRule: true,
+        blockquote: {
+          HTMLAttributes: {
+            class: 'border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic',
+          },
+        },
       }),
+      // NotePlan task extensions (replaces Tiptap's TaskList/TaskItem)
+      ...NotePlanExtensions,
+      // Link handling
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -51,24 +79,31 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           class: 'wiki-link-decoration',
         },
       }),
-      // Removed TaskList/TaskItem - we handle tasks in the sidebar
+      // Markdown support with proper task handling
       Markdown.configure({
-        html: true,
+        html: false,
         tightLists: true,
-        bulletListMarker: '*',  // Changed from '+' to '*' for task compatibility
-        breaks: true,
-        transformPastedText: true,
-        transformCopiedText: true,
+        bulletListMarker: '-',
+        breaks: false,
         linkify: false,
-        transformers: [wikiLinkMarkdownTransformer],
+        transformPastedText: false,
+        transformCopiedText: false,
+        transformers: [
+          wikiLinkMarkdownTransformer,
+          noteplanTaskMarkdownTransformer,
+        ],
       }),
     ],
-    content: wikiLinkMarkdownTransformer.preProcess(content),
+    content: content,
     editable: !readOnly,
     onUpdate: ({ editor }) => {
+      // Get markdown with proper task formatting
       const markdown = ((editor.storage as any).markdown as any).getMarkdown();
+
+      // Apply wiki link post-processing
       const processed = wikiLinkMarkdownTransformer.postProcess(markdown);
-      console.log('Editor saving markdown:', processed); // Debug log
+
+      // Save the processed content
       onChange(processed);
     },
     editorProps: {
@@ -86,15 +121,11 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
       const { from, to } = editor.state.selection;
       const hasFocus = editor.isFocused;
 
-      // Preprocess content to remove escaping from wiki links
-      const processedContent = wikiLinkMarkdownTransformer.preProcess(content);
-
       // Update content
-      editor.commands.setContent(processedContent);
+      editor.commands.setContent(content, false);
 
       // Restore cursor position if editor was focused
       if (hasFocus) {
-        // Use setTimeout to ensure content is updated first
         setTimeout(() => {
           const docSize = editor.state.doc.content.size;
           const safeFrom = Math.min(from, docSize);

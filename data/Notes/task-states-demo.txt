@@ -1,0 +1,78 @@
+# Task States Demo
+
+This file demonstrates all the different task states and how they appear in the editor.
+
+## Open Tasks (No State Marker)
+* Regular open task #todo
+* Another open task with tags #work #p1
+* Task with a longer description that wraps to multiple lines to test how the layout handles longer text
+
+## Completed Tasks [x]
+* [x] Completed task - should show checkmark icon ☑
+* [x] Another completed task #done
+* [x] Completed task with description
+    This task is done and has some details about what was accomplished
+
+## Cancelled Tasks [-]
+* [-] Cancelled task - should show X icon ☒
+* [-] Cancelled project #cancelled
+* [-] Task that was cancelled with reason
+    Decided not to pursue this direction
+
+## Scheduled/In-Progress Tasks [>]
+* [>] Task currently in progress - should show clock icon ◷
+* [>] Working on this now #doing #p1
+* [>] In-progress task with details
+    Started today, making good progress
+    Still need to finish the final steps
+
+## Important Tasks [!]
+* [!] Very important task - should show bold red checkbox
+* [!] Urgent priority item #urgent #p1
+* [!] Critical task with details
+    This needs immediate attention
+    Has red border and background highlight
+
+## Nested Tasks
+* Regular parent task #project
+    * [x] Completed subtask
+    * [>] In-progress subtask
+    * [!] Important subtask
+    * Regular open subtask
+
+## Mixed Content
+* [!] Important task with nested structure
+    This is a detail line under the important task
+    Another detail line explaining the importance
+    * Nested regular task
+    * [x] Nested completed task
+
+## Indentation Test
+* Task at depth 0
+    Detail line with 4 spaces
+    Another detail line
+    * Child task at depth 1
+        Child task detail line (8 spaces)
+        * Grandchild task at depth 2
+            Grandchild detail (12 spaces)
+
+## Real-World Examples
+* [>] Write quarterly report #work #p2
+    Need to include Q4 metrics
+    Get approval from team lead before submitting
+    Deadline: Friday EOD
+
+* [!] Fix production bug #urgent #bug
+    Users reporting login failures
+    Check authentication service logs
+    Roll back if necessary
+
+* [x] Review pull request #code-review
+    Checked for security issues
+    Tests all passing
+    Merged to main branch
+
+* [-] Research alternative approaches #research
+    Initially considered but not feasible
+    Cost too high for current budget
+    May revisit next quarter

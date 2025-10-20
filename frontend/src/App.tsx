@@ -8,6 +8,7 @@ import { useWebSocket } from './hooks/useWebSocket';
 import { useKeyboard } from './hooks/useKeyboard';
 import { useUIStore } from './store/uiStore';
 import { useFileStore } from './store/fileStore';
+import { globalTaskIndexer } from './services/globalTaskIndexer';
 
 function App() {
   const { theme } = useUIStore();
@@ -25,17 +26,27 @@ function App() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  // Initialize folders on mount
+  // Initialize folders and global task indexer on mount
   useEffect(() => {
     const init = async () => {
       try {
         const api = (await import('./services/api')).api;
         await api.initializeFolders();
+
+        // Initialize global task indexer
+        console.log('[App] Initializing global task indexer...');
+        await globalTaskIndexer.initialize();
+        console.log('[App] Global task indexer initialized');
       } catch (err) {
-        console.error('Failed to initialize folders:', err);
+        console.error('Failed to initialize:', err);
       }
     };
     init();
+
+    // Cleanup on unmount
+    return () => {
+      globalTaskIndexer.dispose();
+    };
   }, []);
 
   return (

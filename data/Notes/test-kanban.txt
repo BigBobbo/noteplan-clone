@@ -1,0 +1,38 @@
+# Test Kanban Tasks
+
+## Todo Tasks
+* Task 1 in todo #status-todo #p1
+    This is a detailed description of Task 1.
+    It can span multiple lines and include:
+    - Bullet points for steps
+    - Links: https://example.com
+    - **Bold** and *italic* text
+    - Code: `npm install`
+
+* Task 2 in todo #status-todo #work
+    Quick notes about Task 2.
+    Remember to check the API documentation.
+
+* Task 3 in todo #status-todo #personal
+    Personal task details here.
+    - Buy groceries
+    - Call dentist
+    - Schedule meeting
+
+## In Progress Tasks
+* Task 4 in progress #status-doing #p2 #work
+    This task has both details AND child tasks.
+    The details should appear before the child tasks.
+    * Child task 4.1
+    * Child task 4.2
+        Details for child task 4.2
+* Task 5 in progress #status-doing
+    Simple detail for Task 5.
+
+## Done Tasks
+* [x] Task 6 done #status-done #work
+* [x] Task 7 done #status-done
+
+## Untagged Tasks
+* Task without status tags
+* Another untagged task #urgent

@@ -3,6 +3,7 @@ import { useFileStore } from '../store/fileStore';
 import { useTaskStore } from '../store/taskStore';
 import { useLinkStore } from '../store/linkStore';
 import { useTaskOrderStore } from '../store/taskOrderStore';
+import { useGlobalTaskStore } from '../store/globalTaskStore';
 import {
   parseTasksFromContent,
   toggleTaskInContent,
@@ -49,6 +50,14 @@ export const useTasks = () => {
       const tasksWithRanks = applyRanksToTasks(fileTasks, taskRanks);
 
       console.log('Parsed tasks:', tasksWithRanks.length, tasksWithRanks);
+
+      // DEBUG: Log tasks with details
+      const tasksWithDetails = tasksWithRanks.filter(t => t.hasDetails);
+      console.log('Tasks with details:', tasksWithDetails.length);
+      tasksWithDetails.forEach(t => {
+        console.log(`  - ${t.text}: hasDetails=${t.hasDetails}, details="${t.details?.substring(0, 50)}..."`);
+      });
+
       setTasks(tasksWithRanks);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -83,12 +92,21 @@ export const useTasks = () => {
     targetDate: Date,
     timeBlock?: TimeBlockRef
   ) => {
-    // Find the task
-    const task = tasks.find((t) => t.id === taskId);
+    // First try to find the task in current file tasks
+    let task = tasks.find((t) => t.id === taskId);
+
+    // If not found in current file, search globally
     if (!task) {
-      console.error('Task not found:', taskId);
+      console.log('Task not in current file, searching globally...');
+      task = useGlobalTaskStore.getState().getTaskById(taskId);
+    }
+
+    if (!task) {
+      console.error('Task not found in current file or globally:', taskId);
       return;
     }
+
+    console.log(`Found task "${task.text}" from file: ${task.file}`);
 
     // Get or create daily note for targetDate
     const dateStr = toNotePlanDate(targetDate);

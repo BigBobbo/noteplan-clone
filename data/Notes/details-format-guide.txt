@@ -1,0 +1,73 @@
+# Task Details Format Guide
+
+This file demonstrates the correct indentation format for task details with bullet points.
+
+## Basic Details (Simple Text)
+
+* Task with simple details
+    This is a detail line
+    This is another detail line
+    Details continue until we reach a less-indented line
+
+## Details with Bullet Points
+
+**IMPORTANT**: Bullet points within details must be indented one MORE level than the detail text.
+
+* Task with formatted details
+    This is the description of the task.
+    It can span multiple lines.
+
+        * Bullet point 1 (indented 8 spaces total)
+        * Bullet point 2
+        * Bullet point 3
+
+    Back to regular detail text (4 spaces).
+    More description here.
+
+## Details with Nested Bullets
+
+* Complex task
+    Description of the complex task:
+
+        * Main bullet point
+            * Nested bullet (12 spaces total)
+            * Another nested bullet
+        * Another main bullet
+
+    **Bold text** and *italic* work too!
+    Code: `npm install`
+    Links: https://example.com
+
+## Multiple Tasks
+
+* First task
+    Details for first task
+        * Bullet in first task
+
+* Second task
+    Details for second task
+        * Bullet in second task
+        * Another bullet
+
+## Tasks with Both Details AND Subtasks
+
+* Parent task
+    This is a detail of the parent task
+        * Bullet within parent's details
+    * Child task 1
+    * Child task 2
+        Child task 2 has its own details
+            * Bullet in child task 2's details
+
+## Why This Indentation?
+
+The system uses 4-space indentation per depth level:
+- Task at depth 0: 0 spaces
+- Details at depth 1: 4 spaces
+- Bullets within details at depth 2: 8 spaces
+- Child tasks at depth 1: 4 spaces (but marked with `*`)
+
+This way, the parser can distinguish:
+- Child tasks: Start with `*` at depth 1 (4 spaces)
+- Detail text: Plain text at depth 1 (4 spaces)
+- Bullets in details: Start with `*` at depth 2+ (8+ spaces)

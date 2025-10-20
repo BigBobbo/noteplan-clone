@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useBoardStore } from '../../store/boardStore';
 import { useTasks } from '../../hooks/useTasks';
+import { useFileStore } from '../../store/fileStore';
 import { KanbanColumn } from './KanbanColumn';
 import { BoardSelector } from './BoardSelector';
 import { Loading } from '../common/Loading';
@@ -8,6 +9,7 @@ import { Loading } from '../common/Loading';
 export const KanbanBoard: React.FC = () => {
   const { activeBoard, loading, loadBoards } = useBoardStore();
   const { allTasks } = useTasks();
+  const { currentFile } = useFileStore();
 
   // Load boards on mount
   useEffect(() => {
@@ -18,6 +20,16 @@ export const KanbanBoard: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-full">
         <Loading text="Loading boards..." />
+      </div>
+    );
+  }
+
+  if (!currentFile) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">
+        <p className="text-lg mb-4">No file selected</p>
+        <p className="text-sm">Open a note file to see its tasks in the board view</p>
+        <p className="text-xs mt-2">Or use the "All Tasks" tab to see tasks from all files</p>
       </div>
     );
   }

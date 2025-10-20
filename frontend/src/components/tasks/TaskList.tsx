@@ -2,18 +2,18 @@ import { useTasks } from '../../hooks/useTasks';
 import { TaskTreeItem } from './TaskTreeItem';
 import { TaskFilters } from './TaskFilters';
 import type { ParsedTask } from '../../services/taskService';
-import { DndContext, closestCenter } from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useTaskOrderStore } from '../../store/taskOrderStore';
 import { useFileStore } from '../../store/fileStore';
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 
 export const TaskList: React.FC = () => {
   const { tasks, allTasks, filter, setFilter, toggleTask, rescheduleTask } =
     useTasks();
-  const { reorderTasks } = useTaskOrderStore();
   const { currentFile } = useFileStore();
+
+  // Check if we have a current file
+  const hasCurrentFile = currentFile !== null;
 
   // Only root-level tasks can be reordered
   const rootTasks = useMemo(() => {
@@ -64,6 +64,10 @@ export const TaskList: React.FC = () => {
       return taskDate.getTime() === today.getTime();
     }),
     scheduled: countFilteredTasks(allTasks, (t) => t.date !== undefined),
+    p1: countFilteredTasks(allTasks, (t) => t.priority === 1),
+    p2: countFilteredTasks(allTasks, (t) => t.priority === 2),
+    p3: countFilteredTasks(allTasks, (t) => t.priority === 3),
+    p4: countFilteredTasks(allTasks, (t) => t.priority === 4),
   };
 
   const handleReschedule = (taskId: string) => {
@@ -71,22 +75,6 @@ export const TaskList: React.FC = () => {
     // In a real implementation, we'd show a date picker
     const today = new Date();
     rescheduleTask(taskId, today);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over || active.id === over.id || !currentFile) return;
-
-    const oldIndex = sortedTasks.findIndex((t) => t.id === active.id);
-    const newIndex = sortedTasks.findIndex((t) => t.id === over.id);
-
-    if (oldIndex === -1 || newIndex === -1) return;
-
-    const newOrder = arrayMove(sortedTasks, oldIndex, newIndex);
-
-    // Update ranks in store (this will trigger a re-render via useTasks)
-    reorderTasks(currentFile.metadata.path, newOrder);
   };
 
   const handleResetOrder = () => {
@@ -101,45 +89,54 @@ export const TaskList: React.FC = () => {
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Tasks
+          {currentFile && (
+            <span className="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">
+              from {currentFile.metadata.path.split('/').pop()}
+            </span>
+          )}
         </h2>
       </div>
 
-      <TaskFilters
-        currentFilter={filter}
-        onFilterChange={setFilter}
-        onResetOrder={handleResetOrder}
-        taskCounts={taskCounts}
-      />
+      {hasCurrentFile && (
+        <TaskFilters
+          currentFilter={filter}
+          onFilterChange={setFilter}
+          onResetOrder={handleResetOrder}
+          taskCounts={taskCounts}
+        />
+      )}
 
       <div className="flex-1 overflow-y-auto p-2">
-        {sortedTasks.length === 0 ? (
+        {!hasCurrentFile ? (
           <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-            <p className="text-sm">No tasks found</p>
+            <p className="text-sm">No file selected</p>
+            <p className="text-xs mt-2">
+              Open a note file to see its tasks, or use the "All Tasks" tab to see tasks from all files
+            </p>
+          </div>
+        ) : sortedTasks.length === 0 ? (
+          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+            <p className="text-sm">No tasks in this file</p>
             <p className="text-xs mt-1">
-              Create tasks by starting a line with *
+              Create tasks using checkbox syntax: - [ ] Task name
             </p>
           </div>
         ) : (
-          <DndContext
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
+          <SortableContext
+            items={sortedTasks.map((t) => t.id)}
+            strategy={verticalListSortingStrategy}
           >
-            <SortableContext
-              items={sortedTasks.map((t) => t.id)}
-              strategy={verticalListSortingStrategy}
-            >
-              <div className="space-y-1">
-                {sortedTasks.map((task) => (
-                  <TaskTreeItem
-                    key={task.id}
-                    task={task}
-                    onToggle={toggleTask}
-                    onReschedule={handleReschedule}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
+            <div className="space-y-1">
+              {sortedTasks.map((task) => (
+                <TaskTreeItem
+                  key={task.id}
+                  task={task}
+                  onToggle={toggleTask}
+                  onReschedule={handleReschedule}
+                />
+              ))}
+            </div>
+          </SortableContext>
         )}
       </div>
     </div>

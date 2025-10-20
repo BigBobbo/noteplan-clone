@@ -1,0 +1,7 @@
+# Bracket Test
+
+[] Empty brackets task
+[ ] Space inside brackets task
+[x] Completed task
+
+- Regular bullet

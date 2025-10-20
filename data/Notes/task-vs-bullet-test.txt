@@ -1,0 +1,59 @@
+# Task vs Bullet Test
+
+## This file tests the distinction between tasks and bullets
+
+### Tasks (should have checkboxes)
+
+[] Open task - should show checkbox
+[x] Completed task - should show completed checkbox
+[-] Cancelled task - should show cancelled checkbox
+[>] Scheduled task - should show scheduled icon
+[!] Important task - should show important styling
+
+### Bullets (should show regular bullets, NO checkboxes)
+
+- Regular bullet point 1
+- Regular bullet point 2
+- Regular bullet point 3
+
+* Asterisk bullet 1
+* Asterisk bullet 2
+* Asterisk bullet 3
+
+### Mixed Content
+
+[] Task with details
+    This is a description.
+
+    Requirements:
+    - Bullet requirement 1
+    - Bullet requirement 2
+    - Bullet requirement 3
+
+- Bullet point with details
+    This is some context.
+
+    Notes:
+    - Sub-bullet 1
+    - Sub-bullet 2
+
+### Nested Structure
+
+[] Parent task
+    Task description here.
+
+    - Bullet sub-item 1
+    - Bullet sub-item 2
+
+    [] Child task 1
+        Child task details
+    [] Child task 2
+        More details
+
+- Parent bullet
+    Bullet description.
+
+    [] Child task under bullet
+        This should have a checkbox
+    - Child bullet under bullet
+        This should be a regular bullet

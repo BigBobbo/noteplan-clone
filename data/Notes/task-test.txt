@@ -1,0 +1,18 @@
+# Task Test File
+
+## Empty bracket tasks
+- [] Empty bracket task 1
+- [ ] Space bracket task 2
+
+## Completed tasks
+- [x] Completed task 1
+- [X] Completed task 2
+
+## Other states
+- [-] Cancelled task
+- [>] Scheduled task
+- [!] Important task
+
+## Regular bullets (should NOT show in tasks)
+- Regular bullet 1
+- Regular bullet 2

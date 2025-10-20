@@ -1,4 +1,6 @@
 import React from 'react';
+import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import type { TimeBlock as TimeBlockType } from '../../utils/timeBlockUtils';
 import { calculateBlockPosition } from '../../utils/timeBlockUtils';
 import clsx from 'clsx';
@@ -16,24 +18,55 @@ export const TimeBlock: React.FC<TimeBlockProps> = ({
 }) => {
   const { top, height } = calculateBlockPosition(block, hourHeight);
 
-  const handleClick = () => {
-    if (onEdit) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: block.id,
+    data: {
+      type: 'timeblock',
+      block,
+    },
+  });
+
+  const [clickStart, setClickStart] = React.useState<number>(0);
+
+  const handleMouseDown = () => {
+    setClickStart(Date.now());
+  };
+
+  const handleClick = (e: React.MouseEvent) => {
+    const clickDuration = Date.now() - clickStart;
+    // Only trigger edit if it was a quick click (not a drag)
+    // and not currently dragging
+    if (clickDuration < 200 && !isDragging && onEdit) {
+      e.stopPropagation();
       onEdit(block);
     }
   };
 
+  const style = {
+    top: `${top}px`,
+    height: `${Math.max(height, 24)}px`,
+    // Apply transform while dragging for visual feedback
+    ...(transform && {
+      transform: CSS.Translate.toString(transform),
+    }),
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 1000 : 'auto',
+  };
+
   return (
     <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
       className={clsx(
-        'absolute left-12 right-2 bg-blue-500/90 hover:bg-blue-600/90 rounded-md px-3 py-2 cursor-pointer transition-colors border border-blue-600 shadow-sm',
+        'absolute left-12 right-2 bg-blue-500/90 hover:bg-blue-600/90 rounded-md px-3 py-2 cursor-grab active:cursor-grabbing transition-colors border border-blue-600 shadow-sm',
         {
           'opacity-90': height < 30,
+          'cursor-grabbing': isDragging,
         }
       )}
-      style={{
-        top: `${top}px`,
-        height: `${Math.max(height, 24)}px`,
-      }}
+      style={style}
+      onMouseDown={handleMouseDown}
       onClick={handleClick}
     >
       <div className="text-white text-sm font-medium truncate">

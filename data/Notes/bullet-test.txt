@@ -1,0 +1,68 @@
+# Bullet Point Test - CORRECT FORMAT
+
+## IMPORTANT: Use hyphens (-) for bullets in task details!
+
+## Test 1: Simple bullet list
+
+* Plan Q4 Product Launch #project #p1
+    We need to coordinate the launch of our new feature set for Q4.
+
+    Key Requirements:
+    - Finalize feature list by Oct 15
+    - Create marketing materials
+    - Schedule launch event
+    - Prepare press releases
+
+    Timeline: Launch date is November 30, 2025
+
+* Deploy authentication system #devops
+    Rolling deployment of new OAuth 2.0 system.
+
+    Pre-deployment checklist:
+    - Run all integration tests
+    - Backup production database
+    - Review rollback procedure
+
+    Deployment window: Oct 20, 2am-4am EST
+
+## Test 2: Nested bullets
+
+* Research project #work
+    Investigate new framework options.
+
+    Evaluation criteria:
+    - Performance
+        - Load time < 2s
+        - Memory usage < 100MB
+    - Developer experience
+        - Good documentation
+        - Active community
+
+## Test 3: Mixed content
+
+* Write quarterly report #work #p2
+    Q4 financial summary and goals for Q1.
+
+    Sections to include:
+    - Executive Summary
+    - Revenue Analysis
+    - Expense Breakdown
+    - Q1 Projections
+
+    Due date: January 15, 2026
+    Recipients: Board members, department heads
+
+## Test 4: Tasks with subtasks AND details
+
+* Major project #project
+    This is the main project description.
+
+    Project goals:
+    - Increase user engagement
+    - Improve performance
+    - Add new features
+
+    * Subtask 1
+        Subtask 1 details here.
+    * Subtask 2
+        Subtask 2 details here.

@@ -1,0 +1,303 @@
+# Task Details Examples
+
+This file contains real-world examples of tasks with detailed descriptions and bullet points.
+
+## Project Tasks
+
+* [>] Plan Q4 Product Launch
+    We need to coordinate the launch of our new feature set for Q4. This is a critical milestone for the company.
+
+    **Key Requirements:**
+        * Finalize feature list by Oct 15
+        * Create marketing materials
+        * Schedule launch event
+        * Prepare press releases
+        * Train customer support team
+
+    **Timeline:** Launch date is November 30, 2025
+
+    **Budget:** $50,000 allocated
+
+    Contact: @sarah for questions
+
+* Write quarterly report #work #p1
+    Comprehensive report covering Q3 achievements and Q4 goals.
+
+    **Sections to include:**
+        * Executive summary
+        * Revenue analysis
+        * Team performance metrics
+        * Risk assessment
+        * Q4 objectives
+
+    **Deadline:** Submit to leadership by Oct 15
+
+    **Resources needed:**
+        * Sales data from @john
+        * Engineering metrics from @alice
+        * Budget reports from finance team
+
+    Use template: `/templates/quarterly-report.docx`
+
+* Deploy new authentication system >2025-10-20 #devops #p2
+    Rolling deployment of the new OAuth 2.0 authentication system.
+
+    **Pre-deployment checklist:**
+        * Run all integration tests
+        * Backup production database
+        * Review rollback procedure
+        * Alert monitoring team
+        * Schedule maintenance window
+
+    **Deployment steps:**
+        * Deploy to staging (Oct 18)
+        * Smoke testing (Oct 19)
+        * Production deployment (Oct 20, 2am-4am EST)
+        * Monitor for 24 hours
+
+    **Rollback plan:** Keep previous Docker image `auth-service:v2.1.4` ready
+
+    Documentation: https://docs.company.com/auth-migration
+
+## Personal Tasks
+
+* [x] Complete tax documents #personal
+    Finished gathering all tax documents for 2024 filing.
+
+    **Documents collected:**
+        * W-2 forms from employers
+        * 1099 forms for freelance work
+        * Investment statements
+        * Charitable donation receipts
+        * Medical expense receipts
+
+    Filed on October 1st through TurboTax.
+
+* Plan vacation to Japan >2025-11-15 #travel #personal
+    Research and book trip to Japan for December 2025.
+
+    **Things to book:**
+        * Round-trip flights (SFO → NRT)
+        * Hotel in Tokyo (5 nights)
+        * Hotel in Kyoto (4 nights)
+        * JR Rail Pass
+        * Travel insurance
+
+    **Activities to research:**
+        * Traditional tea ceremony
+        * Visit Fushimi Inari shrine
+        * Tokyo DisneySea
+        * Tsukiji fish market tour
+        * Onsen experience in Hakone
+
+    **Budget:** ~$3,500 per person
+
+    Check visa requirements at: https://www.mofa.go.jp/
+
+* Learn TypeScript #learning #p3
+    Complete online course and build practice projects.
+
+    **Course outline:**
+        * Basic types and interfaces
+        * Generics and advanced types
+        * Decorators and metadata
+        * Integration with React
+        * Testing with Jest
+
+    **Practice projects:**
+        * Todo app with TypeScript
+        * REST API with Express + TypeScript
+        * React component library
+
+    Course link: https://www.typescriptlang.org/docs/
+
+## Home & Errands
+
+* Grocery shopping #errands
+    Weekly grocery run for meal prep.
+
+    **Shopping list:**
+        * Produce: lettuce, tomatoes, avocados, onions
+        * Protein: chicken breast, salmon, eggs
+        * Dairy: milk, cheese, yogurt
+        * Pantry: rice, pasta, olive oil
+        * Snacks: almonds, dark chocolate
+
+    **Stores to visit:**
+        * Whole Foods for produce
+        * Costco for bulk items
+
+    Budget: ~$150
+
+* [!] Fix leaking faucet #home #urgent
+    Kitchen faucet has been dripping for 3 days - wasting water and annoying!
+
+    **Steps to fix:**
+        * Turn off water supply
+        * Remove faucet handle
+        * Replace O-ring and washer
+        * Reassemble and test
+
+    **Parts needed:**
+        * Replacement O-rings (size 14mm)
+        * Faucet washers
+        * Plumber's grease
+
+    **If DIY doesn't work:** Call Joe's Plumbing at (555) 123-4567
+
+    Estimated cost: $15 for parts, $120 if need plumber
+
+* Organize garage #home
+    Deep clean and reorganize the garage for better storage.
+
+    **Tasks:**
+        * Sort items into keep/donate/trash
+        * Install wall-mounted shelving
+        * Label storage bins
+        * Sweep and clean floor
+        * Set up workbench area
+
+    **Donations:**
+        * Old tools to Habitat for Humanity
+        * Unused sports equipment to Goodwill
+
+    **Schedule:** Dedicate full Saturday to this project
+
+## Work Projects
+
+* Code review for auth service PR #code-review #p1
+    Review pull request #347 for the new authentication middleware.
+
+    **Review checklist:**
+        * Code follows style guide
+        * Unit tests have good coverage (>80%)
+        * No security vulnerabilities
+        * Performance benchmarks meet requirements
+        * Documentation is updated
+        * API changes are backwards compatible
+
+    **Key files to review:**
+        * `src/middleware/auth.ts`
+        * `src/utils/jwt.ts`
+        * `tests/auth.spec.ts`
+
+    PR link: https://github.com/company/api/pull/347
+
+    **Questions for author (@mike):**
+        * Why use RS256 instead of HS256?
+        * How are refresh tokens handled?
+        * What's the token expiration policy?
+
+* Update API documentation #documentation
+    Refresh API docs to reflect recent endpoint changes.
+
+    **Endpoints to document:**
+        * `POST /api/v2/auth/login`
+        * `POST /api/v2/auth/refresh`
+        * `GET /api/v2/users/profile`
+        * `PATCH /api/v2/users/settings`
+
+    **Documentation must include:**
+        * Request/response schemas
+        * Example curl commands
+        * Error codes and meanings
+        * Rate limiting information
+        * Authentication requirements
+
+    Use Swagger/OpenAPI 3.0 format
+
+    Docs repo: https://github.com/company/api-docs
+
+## Learning & Development
+
+* [>] Take AWS Solutions Architect course #certification #learning
+    Study for AWS Solutions Architect Associate certification.
+
+    **Study plan (12 weeks):**
+        * Weeks 1-3: EC2, VPC, IAM fundamentals
+        * Weeks 4-6: S3, CloudFront, Route53
+        * Weeks 7-9: RDS, DynamoDB, ElastiCache
+        * Weeks 10-11: Lambda, API Gateway, SQS
+        * Week 12: Practice exams and review
+
+    **Resources:**
+        * A Cloud Guru course
+        * AWS whitepapers
+        * Practice tests from Tutorial Dojo
+        * Hands-on labs in AWS Free Tier
+
+    **Exam details:**
+        * Cost: $150
+        * Duration: 130 minutes
+        * Passing score: 720/1000
+
+    Schedule exam for: December 15, 2025
+
+    Course link: https://learn.acloud.guru/
+
+## Meeting Notes
+
+* Team standup - October 10 #meeting
+    Daily standup meeting notes and action items.
+
+    **Attendees:** @alice @bob @charlie @dana
+
+    **Updates:**
+        * Alice: Finished user authentication API
+        * Bob: Working on payment integration, blocked on API keys
+        * Charlie: Fixed 3 critical bugs in production
+        * Dana: Completed UI redesign mockups
+
+    **Action items:**
+        * Bob to follow up with @finance for Stripe API keys
+        * Charlie to write postmortem for yesterday's outage
+        * Dana to share Figma links with team
+
+    **Next meeting:** Tomorrow 9:00 AM
+
+## Complex Nested Example
+
+* Launch mobile app beta program #mobile #p1 >2025-11-01
+    Coordinate beta testing program for new mobile app release.
+
+    **Phase 1: Preparation (Oct 10-20)**
+        * Recruit beta testers
+            * Target: 100 users
+            * Mix of iOS and Android
+            * Diverse user demographics
+        * Set up TestFlight and Google Play Console
+        * Create feedback collection system
+            * In-app feedback button
+            * Weekly survey emails
+            * Dedicated Slack channel
+
+    **Phase 2: Beta Launch (Oct 21-31)**
+        * Send invitations to testers
+        * Monitor crash reports
+        * Collect user feedback
+        * Fix critical bugs
+        * Release beta updates
+            * Aim for 2-3 updates per week
+            * Document all changes in changelog
+
+    **Phase 3: Analysis (Nov 1-7)**
+        * Compile feedback report
+        * Prioritize feature requests
+        * Create bug fix roadmap
+        * Plan production launch
+
+    **Success metrics:**
+        * <5% crash rate
+        * >4.0 average rating from testers
+        * >70% daily active users
+        * <10 critical bugs found
+
+    **Team responsibilities:**
+        * @mobile-team: Bug fixes and features
+        * @qa-team: Test validation
+        * @product-team: Feature prioritization
+        * @marketing-team: Beta tester communications
+
+    **Budget:** $5,000 for incentives (gift cards for top testers)
+
+    Project board: https://linear.app/project/mobile-beta

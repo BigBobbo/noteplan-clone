@@ -228,11 +228,18 @@ export const useCalendarStore = create<CalendarStore>((set, get) => ({
       // Update the time block in the content
       const newContent = updateTimeBlockInContent(currentFile.content, block, updatedBlock);
 
+      console.log('📝 Updated content, saving file...');
+
       // Save the file
       await fileStore.saveFile(currentFile.metadata.path, newContent);
 
+      console.log('💾 File saved, reloading timeblocks...');
+
       // Reload time blocks
       await get().loadTimeBlocks(get().currentDate);
+
+      const reloadedBlocks = get().timeBlocks;
+      console.log('🔄 Timeblocks reloaded. Count:', reloadedBlocks.length, 'First block:', reloadedBlocks[0]);
     } catch (error: any) {
       set({ error: error.message });
       console.error('Failed to update time block:', error);

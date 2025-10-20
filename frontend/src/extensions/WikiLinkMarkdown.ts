@@ -1,32 +1,24 @@
 /**
- * Custom markdown serializer that preserves wiki links
- * This prevents tiptap-markdown from escaping [[ and ]] brackets
+ * Custom markdown transformer for wiki links only
+ * Simplified version that doesn't modify task markers or other text
  */
 export const wikiLinkMarkdownTransformer = {
   /**
-   * Before the content is parsed, preserve wiki links by temporarily replacing them
+   * Before the content is parsed - only handle wiki links
    */
   preProcess: (markdown: string): string => {
-    console.log('[WikiLinkTransformer] preProcess input:', markdown.substring(0, 200));
-
-    // Remove ALL escape characters from wiki links
-    let processed = markdown.replace(/\\\[\\\[/g, '[[').replace(/\\\]\\\]/g, ']]');
-
-    console.log('[WikiLinkTransformer] preProcess output:', processed.substring(0, 200));
-    return processed;
+    // Only process wiki links - remove escape characters if any
+    // Don't modify tasks, bullets, or any other content
+    return markdown.replace(/\\\[\\\[/g, '[[').replace(/\\\]\\\]/g, ']]');
   },
 
   /**
-   * After the content is serialized, ensure wiki links aren't escaped
+   * After the content is serialized - only handle wiki links
    */
   postProcess: (markdown: string): string => {
-    console.log('[WikiLinkTransformer] postProcess input:', markdown.substring(0, 200));
-
-    // Remove escape characters from wiki links
-    let processed = markdown.replace(/\\\[\\\[/g, '[[').replace(/\\\]\\\]/g, ']]');
-
-    console.log('[WikiLinkTransformer] postProcess output:', processed.substring(0, 200));
-    return processed;
+    // Only process wiki links - remove escape characters if any
+    // Don't modify tasks, bullets, or any other content
+    return markdown.replace(/\\\[\\\[/g, '[[').replace(/\\\]\\\]/g, ']]');
   },
 };
 

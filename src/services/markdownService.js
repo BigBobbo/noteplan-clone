@@ -15,7 +15,7 @@ const md = new MarkdownIt({
 
 // Regex patterns for NotePlan elements
 const PATTERNS = {
-  task: /^\* (\[[ xX>\-]\] )?(.+)$/gm,
+  task: /^[-*+] (\[[ xX>\-!]?\] )?(.+)$/gm,  // Support -, *, and + markers; optional checkbox content
   timeBlock: /^\+ (\d{2}:\d{2})-(\d{2}:\d{2}) (.+)$/gm,
   wikiLink: /\[\[([^\]|]+)(\|([^\]]+))?\]\]/g,
   tag: /#([a-zA-Z0-9_-]+)/g,
@@ -85,31 +85,37 @@ function extractTasks(content) {
 
   lines.forEach((line, index) => {
     const trimmed = line.trim();
-    if (trimmed.startsWith('* ')) {
-      const checkboxMatch = trimmed.match(/^\* (\[[ xX>\-]\]) (.+)$/);
-      const plainMatch = trimmed.match(/^\* (.+)$/);
 
-      if (checkboxMatch) {
-        const checkbox = checkboxMatch[1];
-        const text = checkboxMatch[2];
-        const completed = checkbox === '[x]' || checkbox === '[X]';
-        const scheduled = checkbox === '[>]';
-        const canceled = checkbox === '[-]';
+    // Check for tasks with checkbox markers (with or without bullet prefix)
+    // Matches: "[] Task", "[x] Task", "- [] Task", "* [x] Task", etc.
+    const checkboxMatch = trimmed.match(/^(?:[-*+] )?(\[[ xX>\-!]?\]) (.+)$/);
 
-        tasks.push({
-          text,
-          completed,
-          scheduled,
-          canceled,
-          line: index + 1
-        });
-      } else if (plainMatch && !checkboxMatch) {
-        // Plain task without checkbox
+    if (checkboxMatch) {
+      const checkbox = checkboxMatch[1];
+      const text = checkboxMatch[2];
+      const completed = checkbox === '[x]' || checkbox === '[X]';
+      const scheduled = checkbox === '[>]';
+      const canceled = checkbox === '[-]';
+      const important = checkbox === '[!]';
+
+      tasks.push({
+        text,
+        completed,
+        scheduled,
+        canceled,
+        important: important || false,
+        line: index + 1
+      });
+    } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('+ ')) {
+      // Plain bullet task without checkbox
+      const plainMatch = trimmed.match(/^[-*+] (.+)$/);
+      if (plainMatch) {
         tasks.push({
           text: plainMatch[1],
           completed: false,
           scheduled: false,
           canceled: false,
+          important: false,
           line: index + 1
         });
       }

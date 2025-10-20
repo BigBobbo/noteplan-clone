@@ -1,0 +1,95 @@
+# Checkbox Task Format Test
+
+## Open Tasks
+
+[ ] Simple open task
+[ ] Task with tags #work #p1
+[ ] Task with date >2025-10-15
+[ ] Task with mention @john
+[ ] Task with details
+    This is a description of the task.
+    More details here.
+
+    Requirements:
+    - Bullet point 1
+    - Bullet point 2
+    - Bullet point 3
+
+## Completed Tasks
+
+[x] Completed simple task
+[x] Completed task with tags #done
+[x] Task completed today
+    Had some details attached.
+
+## Scheduled Tasks
+
+[>] Scheduled for later
+[>] In progress task #doing
+[>] Task being worked on
+    Started this morning.
+
+    Next steps:
+    - Finish implementation
+    - Run tests
+    - Deploy
+
+## Important Tasks
+
+[!] Very important task #urgent
+[!] Critical priority item
+[!] Needs attention now
+    This is urgent because...
+
+    Action items:
+    - Contact stakeholders
+    - Review requirements
+    - Make decision
+
+## Cancelled Tasks
+
+[-] Cancelled task
+[-] No longer needed #cancelled
+[-] Decided against this
+    Was going to do X but...
+
+## Nested Tasks
+
+[ ] Parent task #project
+    Main project description here.
+
+    Goals:
+    - Goal 1
+    - Goal 2
+
+    [ ] Child task 1
+        Child task 1 details
+    [ ] Child task 2
+        Child task 2 details
+
+        Subtask requirements:
+        - Requirement A
+        - Requirement B
+    [x] Completed child task
+
+## Complex Example
+
+[ ] Q4 Product Launch #project #p1
+    Coordinate launch of new feature set for Q4.
+
+    Key deliverables:
+    - Finalize feature list by Oct 15
+    - Create marketing materials
+    - Schedule launch event
+    - Prepare press releases
+    - Train customer support team
+
+    Timeline: Launch date is November 30, 2025
+
+    Budget: $50,000 allocated
+
+    [ ] Design review meeting
+        Schedule with design team
+    [ ] Marketing kickoff
+        Present to marketing team
+    [x] Initial planning complete

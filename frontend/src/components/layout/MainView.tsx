@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Editor } from '../editor/Editor';
-import { TaskList } from '../tasks/TaskList';
+import { RawTextEditor } from '../editor/RawTextEditor';
+import { EnhancedTaskList } from '../tasks/EnhancedTaskList';
+import { AllTasksView } from '../tasks/AllTasksView';
 import { KanbanBoard } from '../kanban/KanbanBoard';
 import { ReferenceView } from '../references/ReferenceView';
 import {
@@ -8,10 +10,12 @@ import {
   CheckCircleIcon,
   Squares2X2Icon,
   LinkIcon,
+  CodeBracketIcon,
+  GlobeAltIcon,
 } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
-type MainViewType = 'editor' | 'tasks' | 'board' | 'references';
+type MainViewType = 'editor' | 'raw' | 'tasks' | 'alltasks' | 'board' | 'references';
 
 export const MainView: React.FC = () => {
   const [currentView, setCurrentView] = useState<MainViewType>('editor');
@@ -33,6 +37,18 @@ export const MainView: React.FC = () => {
           <span>Editor</span>
         </button>
         <button
+          onClick={() => setCurrentView('raw')}
+          className={clsx(
+            'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2',
+            currentView === 'raw'
+              ? 'text-amber-600 dark:text-amber-400 border-amber-600 dark:border-amber-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 border-transparent'
+          )}
+        >
+          <CodeBracketIcon className="h-4 w-4" />
+          <span>Raw</span>
+        </button>
+        <button
           onClick={() => setCurrentView('tasks')}
           className={clsx(
             'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2',
@@ -43,6 +59,18 @@ export const MainView: React.FC = () => {
         >
           <CheckCircleIcon className="h-4 w-4" />
           <span>Tasks</span>
+        </button>
+        <button
+          onClick={() => setCurrentView('alltasks')}
+          className={clsx(
+            'flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2',
+            currentView === 'alltasks'
+              ? 'text-amber-600 dark:text-amber-400 border-amber-600 dark:border-amber-400'
+              : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 border-transparent'
+          )}
+        >
+          <GlobeAltIcon className="h-4 w-4" />
+          <span>All Tasks</span>
         </button>
         <button
           onClick={() => setCurrentView('board')}
@@ -73,9 +101,15 @@ export const MainView: React.FC = () => {
       {/* View Content */}
       <div className="flex-1 min-h-0 overflow-y-auto">
         {currentView === 'editor' && <Editor />}
+        {currentView === 'raw' && <RawTextEditor />}
         {currentView === 'tasks' && (
-          <div className="h-full overflow-y-auto p-4 bg-white dark:bg-gray-800">
-            <TaskList />
+          <div className="h-full overflow-y-auto bg-white dark:bg-gray-800">
+            <EnhancedTaskList />
+          </div>
+        )}
+        {currentView === 'alltasks' && (
+          <div className="h-full overflow-y-auto bg-white dark:bg-gray-800">
+            <AllTasksView />
           </div>
         )}
         {currentView === 'board' && <KanbanBoard />}

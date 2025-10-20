@@ -68,6 +68,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
           return false;
         case 'scheduled':
           return task.date !== undefined;
+        case 'p1':
+          return task.priority === 1;
+        case 'p2':
+          return task.priority === 2;
+        case 'p3':
+          return task.priority === 3;
+        case 'p4':
+          return task.priority === 4;
         case 'all':
         default:
           return true;
