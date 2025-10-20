@@ -288,3 +288,39 @@ export function deleteTimeBlockFromContent(
 
   return lines.join('\n');
 }
+
+/**
+ * Add minutes to a time string
+ */
+export function addMinutesToTime(time: string, minutes: number): string {
+  const baseMinutes = timeToMinutes(time);
+  const totalMinutes = baseMinutes + minutes;
+  return minutesToTime(totalMinutes);
+}
+
+/**
+ * Get time from pixel position on timeline
+ */
+export function getTimeFromPixelPosition(pixelY: number, hourHeight: number = 60): string {
+  const totalMinutes = Math.round((pixelY / hourHeight) * 60);
+  const snappedMinutes = Math.round(totalMinutes / 15) * 15;
+  const constrainedMinutes = Math.max(0, Math.min(1440, snappedMinutes));
+  return minutesToTime(constrainedMinutes);
+}
+
+/**
+ * Calculate time from mouse position on timeline
+ */
+export function calculateTimeFromPosition(mouseY: number, timelineRect: { top: number; height: number }): string {
+  const HOUR_HEIGHT = 60;
+  const relativeY = mouseY - timelineRect.top;
+  const totalMinutes = (relativeY / HOUR_HEIGHT) * 60;
+
+  // Snap to 15-minute intervals
+  const snappedMinutes = Math.round(totalMinutes / 15) * 15;
+
+  // Constrain to 24-hour period (with 1 hour default duration)
+  const constrainedMinutes = Math.max(0, Math.min(1440 - 60, snappedMinutes));
+
+  return minutesToTime(constrainedMinutes);
+}
