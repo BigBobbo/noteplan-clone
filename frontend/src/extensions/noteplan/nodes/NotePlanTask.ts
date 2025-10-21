@@ -80,6 +80,30 @@ export const NotePlanTask = Node.create({
           };
         },
       },
+      hasDetails: {
+        default: false,
+        parseHTML: (element) => element.getAttribute('data-has-details') === 'true',
+        renderHTML: (attributes) => {
+          if (!attributes.hasDetails) {
+            return {};
+          }
+          return {
+            'data-has-details': 'true',
+          };
+        },
+      },
+      detailsPreview: {
+        default: '',
+        parseHTML: (element) => element.getAttribute('data-details-preview') || '',
+        renderHTML: (attributes) => {
+          if (!attributes.detailsPreview) {
+            return {};
+          }
+          return {
+            'data-details-preview': attributes.detailsPreview,
+          };
+        },
+      },
     };
   },
 
@@ -95,17 +119,10 @@ export const NotePlanTask = Node.create({
   renderHTML({ node, HTMLAttributes }) {
     const state = node.attrs.state;
     const indent = node.attrs.indent || 0;
+    const hasDetails = node.attrs.hasDetails;
+    const detailsPreview = node.attrs.detailsPreview;
 
-    return [
-      'div',
-      mergeAttributes(HTMLAttributes, {
-        'data-noteplan-task': 'true',
-        'data-state': state,
-        'data-indent': indent,
-        'data-type': 'noteplanTask',
-        class: `noteplan-task noteplan-task-${state}`,
-        style: indent > 0 ? `margin-left: ${indent * 2}rem` : undefined,
-      }),
+    const children = [
       [
         'span',
         {
@@ -122,6 +139,35 @@ export const NotePlanTask = Node.create({
         },
         0,
       ],
+    ];
+
+    // Add details indicator if task has details
+    if (hasDetails) {
+      children.push(' ');
+      children.push([
+        'span',
+        {
+          class: 'task-details-indicator',
+          title: detailsPreview,
+          contenteditable: 'false',
+        },
+        '📝',
+      ]);
+    }
+
+    return [
+      'div',
+      mergeAttributes(HTMLAttributes, {
+        'data-noteplan-task': 'true',
+        'data-state': state,
+        'data-indent': indent,
+        'data-type': 'noteplanTask',
+        'data-has-details': hasDetails ? 'true' : 'false',
+        'data-details-preview': detailsPreview || '',
+        class: `noteplan-task noteplan-task-${state}${hasDetails ? ' has-details' : ''}`,
+        style: indent > 0 ? `margin-left: ${indent * 2}rem` : undefined,
+      }),
+      ...children,
     ];
   },
 

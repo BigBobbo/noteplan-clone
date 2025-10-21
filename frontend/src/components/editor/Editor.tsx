@@ -11,6 +11,45 @@ import { wikiLinkMarkdownTransformer } from '../../extensions/WikiLinkMarkdown';
 import { NotePlanExtensions } from '../../extensions/noteplan';
 import { resolveLink } from '../../services/linkService';
 
+// Helper function to parse task details
+function parseTaskDetailsForEditor(
+  taskLineNumber: number,
+  lines: string[],
+  taskDepth: number
+): { details: string | null; detailsEndLine: number } {
+  let detailsEndLine = taskLineNumber;
+  const detailLines: string[] = [];
+
+  for (let i = taskLineNumber + 1; i < lines.length; i++) {
+    const line = lines[i];
+    const leadingSpaces = line.match(/^(\s*)/)?.[1] || '';
+    const lineDepth = Math.floor(leadingSpaces.length / 2);
+
+    // Stop if we hit content at same or lower depth
+    if (line.trim() && lineDepth <= taskDepth) break;
+
+    // Stop if we hit another task
+    if (line.match(/^(\s*)-\s*\[/) || line.match(/^(\s*)\[/)) break;
+
+    // This is a detail line if it's indented more than the task
+    if (lineDepth > taskDepth || !line.trim()) {
+      // Remove base indentation (taskDepth + 1 levels)
+      const baseIndent = '  '.repeat(taskDepth + 1);
+      const detailText = line.startsWith(baseIndent)
+        ? line.substring(baseIndent.length)
+        : line.trimStart();
+      detailLines.push(detailText);
+      detailsEndLine = i;
+    }
+  }
+
+  const details = detailLines.length > 0
+    ? detailLines.join('\n').trim()
+    : null;
+
+  return { details, detailsEndLine };
+}
+
 // Helper to parse NotePlan markdown to ProseMirror JSON
 function parseNotePlanMarkdown(markdown: string): any {
   const lines = markdown.split('\n');
@@ -41,14 +80,21 @@ function parseNotePlanMarkdown(markdown: string): any {
       else if (m === '>') state = 'scheduled';
       else if (m === '!') state = 'important';
 
-      console.log('[parseNotePlanMarkdown] Found task:', content);
+      // Check for task details
+      const { details, detailsEndLine } = parseTaskDetailsForEditor(i, lines, indent);
+      const hasDetails = !!details;
+      const detailsPreview = details ? details.substring(0, 50) + (details.length > 50 ? '...' : '') : '';
+
+      console.log('[parseNotePlanMarkdown] Found task:', content, 'hasDetails:', hasDetails);
 
       nodes.push({
         type: 'noteplanTask',
-        attrs: { state, indent },
+        attrs: { state, indent, hasDetails, detailsPreview },
         content: content.trim() ? [{ type: 'text', text: content.trim() }] : undefined,
       });
-      i++;
+
+      // Skip detail lines
+      i = detailsEndLine + 1;
       continue;
     }
 

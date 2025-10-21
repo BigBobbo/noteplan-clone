@@ -96,6 +96,15 @@ export const parseTaskDetails = (
   }
 
   const details = detailLines.join('\n').trim();
+
+  // Debug logging to track newlines
+  if (details) {
+    console.log('[parseTaskDetails] Task at line', taskLineNumber, 'has details:');
+    console.log('[parseTaskDetails] Raw details:', JSON.stringify(details));
+    console.log('[parseTaskDetails] Has newlines:', details.includes('\n'));
+    console.log('[parseTaskDetails] Line count:', details.split('\n').length);
+  }
+
   return details || undefined;
 };
 

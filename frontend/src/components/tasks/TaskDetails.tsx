@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
@@ -18,6 +18,13 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(details);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('[TaskDetails] Received details:', JSON.stringify(details));
+    console.log('[TaskDetails] Contains newlines:', details.includes('\n'));
+    console.log('[TaskDetails] Line count:', details.split('\n').length);
+  }, [details]);
 
   if (!isExpanded) {
     return null;
@@ -85,7 +92,21 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({
               onDoubleClick={() => setIsEditing(true)}
               title="Double-click to edit"
             >
-              <ReactMarkdown>{details}</ReactMarkdown>
+              <ReactMarkdown
+                components={{
+                  // Ensure paragraphs render with proper spacing
+                  p: ({children}) => <p className="mb-2">{children}</p>,
+                  // Ensure lists render properly
+                  ul: ({children}) => <ul className="list-disc ml-4 mb-2">{children}</ul>,
+                  ol: ({children}) => <ol className="list-decimal ml-4 mb-2">{children}</ol>,
+                  li: ({children}) => <li className="mb-1">{children}</li>,
+                  // Code blocks
+                  pre: ({children}) => <pre className="bg-gray-100 dark:bg-gray-800 p-2 rounded mb-2 overflow-x-auto">{children}</pre>,
+                  code: ({children}) => <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">{children}</code>,
+                }}
+              >
+                {details}
+              </ReactMarkdown>
             </div>
           )}
         </div>

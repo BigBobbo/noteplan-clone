@@ -434,3 +434,45 @@ body {
 .ProseMirror ul:not([data-type="taskList"]) > li[data-is-task="true"][data-task-state="cancelled"]:hover::before {
   transform: none;
 }
+
+/* Task Description Indicators */
+.noteplan-task.has-details {
+  position: relative;
+}
+
+.noteplan-task .task-details-indicator {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.875rem;
+  opacity: 0.6;
+  cursor: help;
+  transition: opacity 0.2s;
+  vertical-align: middle;
+}
+
+.noteplan-task:hover .task-details-indicator {
+  opacity: 1;
+}
+
+/* Fix for ReactMarkdown paragraph spacing in TaskDetails */
+.prose p {
+  margin-bottom: 0.5rem;
+}
+
+.prose ul,
+.prose ol {
+  margin-bottom: 0.5rem;
+}
+
+.prose li {
+  margin-bottom: 0.25rem;
+}
+
+/* Ensure proper spacing for code blocks */
+.prose pre {
+  margin-bottom: 0.5rem;
+}
+
+.prose code {
+  padding: 0.125rem 0.25rem;
+}
