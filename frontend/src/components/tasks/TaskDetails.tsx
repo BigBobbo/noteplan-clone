@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import clsx from 'clsx';
 
@@ -93,6 +94,7 @@ export const TaskDetails: React.FC<TaskDetailsProps> = ({
               title="Double-click to edit"
             >
               <ReactMarkdown
+                remarkPlugins={[remarkBreaks]}
                 components={{
                   // Ensure paragraphs render with proper spacing
                   p: ({children}) => <p className="mb-2">{children}</p>,

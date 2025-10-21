@@ -3,6 +3,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { format } from 'date-fns';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import type { ParsedTask } from '../../services/taskService';
 import { PriorityBadge } from '../tasks/PriorityBadge';
 import { useTaskDetailsStore } from '../../store/taskDetailsStore';
@@ -76,7 +77,7 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ task }) => {
       {showDetails && (
         <div className="mt-2 mb-2 p-2 bg-gray-50 dark:bg-gray-800/50 rounded border-l-2 border-blue-400 dark:border-blue-600">
           <div className="prose prose-sm dark:prose-invert max-w-none text-xs">
-            <ReactMarkdown>{task.details}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkBreaks]}>{task.details}</ReactMarkdown>
           </div>
         </div>
       )}
