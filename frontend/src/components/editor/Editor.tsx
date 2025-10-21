@@ -10,6 +10,7 @@ import { WikiLink } from '../../extensions/WikiLink';
 import { wikiLinkMarkdownTransformer } from '../../extensions/WikiLinkMarkdown';
 import { NotePlanExtensions } from '../../extensions/noteplan';
 import { resolveLink } from '../../services/linkService';
+import { ScheduledTasksSection } from '../ScheduledTasksSection';
 
 // Helper function to parse task details content into structured nodes
 function parseTaskDetailsContent(details: string, taskState: string): any[] {
@@ -266,6 +267,21 @@ export const Editor: React.FC = () => {
     return '';
   }, [currentFile?.content]);
 
+  // Detect if this is a calendar/daily note file
+  const isCalendarFile = currentFile?.metadata.path.startsWith('Calendar/') ?? false;
+
+  // Parse date from calendar filename (YYYYMMDD.txt)
+  const calendarDate = useMemo(() => {
+    if (!isCalendarFile || !currentFile) return null;
+
+    const filename = currentFile.metadata.name.replace('.txt', '');
+    const year = parseInt(filename.substring(0, 4));
+    const month = parseInt(filename.substring(4, 6)) - 1; // 0-indexed
+    const day = parseInt(filename.substring(6, 8));
+
+    return new Date(year, month, day);
+  }, [isCalendarFile, currentFile?.metadata.name]);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -514,7 +530,16 @@ export const Editor: React.FC = () => {
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-800">
       <EditorToolbar editor={editor} />
       <div className="flex-1 overflow-y-auto">
-        <EditorContent editor={editor} />
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          {/* Show scheduled tasks section for calendar files */}
+          {isCalendarFile && calendarDate && (
+            <ScheduledTasksSection
+              dailyNoteContent={currentFile.content}
+              date={calendarDate}
+            />
+          )}
+          <EditorContent editor={editor} />
+        </div>
       </div>
     </div>
   );
