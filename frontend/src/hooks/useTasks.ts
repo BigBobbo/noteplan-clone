@@ -110,11 +110,11 @@ export const useTasks = () => {
 
     // Get or create daily note for targetDate
     const dateStr = toNotePlanDate(targetDate);
-    const dailyNotePath = `Calendar/${dateStr}.txt`;
 
     try {
-      // Load or create the daily note
+      // Load or create the daily note (API will return correct path)
       const dailyNote = await api.getDailyNote(dateStr);
+      const dailyNotePath = dailyNote.metadata.path; // Use actual path from API
 
       // Create the reference line
       const referenceLine = createTaskReference(task, timeBlock);

@@ -31,22 +31,30 @@ router.get('/daily/:date', asyncHandler(async (req, res) => {
     throw new ValidationError(`Invalid date: ${date}`);
   }
 
-  const filePath = dateUtils.getCalendarPath(date);
+  // Try both new and old formats
+  const possiblePaths = dateUtils.getPossibleCalendarPaths(date);
+  let existingPath = null;
 
-  // Check if file exists
-  const exists = await fileService.fileExists(filePath);
+  for (const filePath of possiblePaths) {
+    if (await fileService.fileExists(filePath)) {
+      existingPath = filePath;
+      break; // Use first match (new format is first in array)
+    }
+  }
 
-  if (exists) {
+  if (existingPath) {
     // Return existing file
-    const fileData = await fileService.getFile(filePath);
+    const fileData = await fileService.getFile(existingPath);
     res.json({
       ...fileData,
       created: false
     });
   } else {
-    // Create new daily note with template
+    // Create new daily note with NEW format
     const dateObj = dateUtils.fromNotePlanDate(date);
     const displayDate = dateUtils.toFullDisplayDate(dateObj);
+    const newFileName = dateUtils.toDailyNoteFileName(dateObj);
+    const filePath = `Calendar/${newFileName}`;
 
     const content = `# ${displayDate}
 
@@ -84,22 +92,31 @@ router.get('/daily/:date', asyncHandler(async (req, res) => {
  */
 router.post('/daily', asyncHandler(async (req, res) => {
   const today = dateUtils.getToday();
-  const filePath = dateUtils.getCalendarPath(today);
 
-  // Check if already exists
-  const exists = await fileService.fileExists(filePath);
+  // Try both new and old formats
+  const possiblePaths = dateUtils.getPossibleCalendarPaths(today);
+  let existingPath = null;
 
-  if (exists) {
-    const fileData = await fileService.getFile(filePath);
+  for (const filePath of possiblePaths) {
+    if (await fileService.fileExists(filePath)) {
+      existingPath = filePath;
+      break; // Use first match (new format is first in array)
+    }
+  }
+
+  if (existingPath) {
+    const fileData = await fileService.getFile(existingPath);
     res.json({
       ...fileData,
       created: false,
       message: 'Daily note already exists'
     });
   } else {
-    // Create new daily note
+    // Create new daily note with NEW format
     const dateObj = new Date();
     const displayDate = dateUtils.toFullDisplayDate(dateObj);
+    const newFileName = dateUtils.toDailyNoteFileName(dateObj);
+    const filePath = `Calendar/${newFileName}`;
 
     const content = `# ${displayDate}
 

@@ -87,25 +87,101 @@ export function getDateRange(startDate: Date, endDate: Date): string[] {
 }
 
 /**
- * Get the calendar file path for a date
+ * Format date as daily note filename (new readable format)
+ * Example: 20251021 - Monday - Oct 21st.txt
+ */
+export function toDailyNoteFileName(date: Date = new Date()): string {
+  const yyyymmdd = format(date, 'yyyyMMdd');
+  const dayName = format(date, 'EEEE');        // Monday
+  const monthDay = format(date, 'MMM do');     // Oct 21st (ordinal)
+
+  return `${yyyymmdd} - ${dayName} - ${monthDay}.txt`;
+}
+
+/**
+ * Extract YYYYMMDD from daily note filename (supports both old and new formats)
+ * Returns null if not a valid daily note filename
+ *
+ * Supports:
+ * - New format: "20251021 - Monday - Oct 21st.txt"
+ * - Old format: "20251021.txt"
+ */
+export function extractDateFromDailyNote(fileName: string): string | null {
+  // New format: "20251021 - Monday - Oct 21st.txt"
+  const newFormatMatch = fileName.match(/^(\d{8}) - \w+ - \w+ \d{1,2}\w{2}\.txt$/);
+  if (newFormatMatch) {
+    return newFormatMatch[1];
+  }
+
+  // Old format: "20251021.txt"
+  const oldFormatMatch = fileName.match(/^(\d{8})\.txt$/);
+  if (oldFormatMatch) {
+    return oldFormatMatch[1];
+  }
+
+  return null;
+}
+
+/**
+ * Check if filename is a daily note (old or new format)
+ */
+export function isDailyNoteFileName(fileName: string): boolean {
+  return extractDateFromDailyNote(fileName) !== null;
+}
+
+/**
+ * Get all possible calendar paths for a date (old and new formats)
+ * Used for lookup when we don't know which format exists
+ * Returns paths in order of preference (new format first)
+ */
+export function getPossibleCalendarPaths(dateStr: string): string[] {
+  const date = fromNotePlanDate(dateStr);
+  const newFormat = toDailyNoteFileName(date);
+  const oldFormat = `${dateStr}.txt`;
+
+  return [
+    `Calendar/${newFormat}`,
+    `Calendar/${oldFormat}`
+  ];
+}
+
+/**
+ * Get the calendar file path for a date (using new format)
  */
 export function getCalendarPath(dateStr: string): string {
-  return `Calendar/${dateStr}.txt`;
+  const date = fromNotePlanDate(dateStr);
+  return `Calendar/${toDailyNoteFileName(date)}`;
 }
 
 /**
- * Check if a path is a calendar file
+ * Check if a path is a calendar file (supports both old and new formats)
  */
 export function isCalendarFile(filePath: string): boolean {
-  return /^Calendar\/\d{8}\.(txt|md)$/.test(filePath);
+  // New format: Calendar/20251021 - Monday - Oct 21st.txt
+  const newFormat = /^Calendar\/\d{8} - \w+ - \w+ \d{1,2}\w{2}\.(txt|md)$/;
+  // Old format: Calendar/20251021.txt
+  const oldFormat = /^Calendar\/\d{8}\.(txt|md)$/;
+
+  return newFormat.test(filePath) || oldFormat.test(filePath);
 }
 
 /**
- * Extract date from calendar file path
+ * Extract date from calendar file path (supports both old and new formats)
  */
 export function extractDateFromPath(filePath: string): string | null {
-  const match = filePath.match(/^Calendar\/(\d{8})\.(txt|md)$/);
-  return match ? match[1] : null;
+  // Try new format first
+  const newMatch = filePath.match(/^Calendar\/(\d{8}) - \w+ - \w+ \d{1,2}\w{2}\.(txt|md)$/);
+  if (newMatch) {
+    return newMatch[1];
+  }
+
+  // Try old format
+  const oldMatch = filePath.match(/^Calendar\/(\d{8})\.(txt|md)$/);
+  if (oldMatch) {
+    return oldMatch[1];
+  }
+
+  return null;
 }
 
 /**
