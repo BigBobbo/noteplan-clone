@@ -394,3 +394,138 @@
 .ProseMirror li[data-type="taskItem"] a:hover {
   color: var(--color-accent-hover, #d97706);
 }
+
+/* ========================================
+   TASK DETAILS VISUAL HIERARCHY
+   ======================================== */
+
+/* TaskDetails container - blockquote-style visual element */
+.ProseMirror [data-task-details="true"] {
+  position: relative;
+  margin: 0.5rem 0 0.75rem 2rem;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid;
+  border-radius: 0 0.375rem 0.375rem 0;
+  background-color: rgba(249, 250, 251, 0.5);
+  transition: all 0.2s ease;
+}
+
+/* Dark theme */
+[data-theme='dark'] .ProseMirror [data-task-details="true"] {
+  background-color: rgba(55, 65, 81, 0.3);
+}
+
+/* Ocean theme */
+[data-theme='ocean'] .ProseMirror [data-task-details="true"] {
+  background-color: rgba(191, 219, 254, 0.3);
+}
+
+/* State-specific border colors */
+.ProseMirror .task-details-open {
+  border-left-color: #f59e0b; /* Amber */
+}
+
+.ProseMirror .task-details-completed {
+  border-left-color: #10b981; /* Green */
+  opacity: 0.6;
+}
+
+.ProseMirror .task-details-cancelled {
+  border-left-color: #ef4444; /* Red */
+  opacity: 0.6;
+}
+
+.ProseMirror .task-details-scheduled {
+  border-left-color: #3b82f6; /* Blue */
+  background-color: rgba(59, 130, 246, 0.08);
+}
+
+[data-theme='dark'] .ProseMirror .task-details-scheduled {
+  background-color: rgba(59, 130, 246, 0.12);
+}
+
+.ProseMirror .task-details-important {
+  border-left-color: #dc2626; /* Dark red */
+  background-color: rgba(220, 38, 38, 0.08);
+  border-left-width: 4px;
+}
+
+[data-theme='dark'] .ProseMirror .task-details-important {
+  background-color: rgba(220, 38, 38, 0.15);
+}
+
+/* Connecting line from task to details */
+.ProseMirror [data-noteplan-task="true"].has-details::after {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  bottom: -0.5rem;
+  width: 2px;
+  height: 0.5rem;
+  background-color: currentColor;
+  opacity: 0.3;
+}
+
+/* Typography adjustments within task details */
+.ProseMirror [data-task-details="true"] p {
+  margin: 0.375rem 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: #4b5563;
+}
+
+[data-theme='dark'] .ProseMirror [data-task-details="true"] p {
+  color: #d1d5db;
+}
+
+.ProseMirror [data-task-details="true"] ul,
+.ProseMirror [data-task-details="true"] ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.ProseMirror [data-task-details="true"] li {
+  margin: 0.25rem 0;
+  font-size: 0.9375rem;
+}
+
+/* Bold text in details */
+.ProseMirror [data-task-details="true"] strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+[data-theme='dark'] .ProseMirror [data-task-details="true"] strong {
+  color: #f9fafb;
+}
+
+/* Hover effect */
+.ProseMirror [data-task-details="true"]:hover {
+  background-color: rgba(249, 250, 251, 0.8);
+  border-left-width: 4px;
+}
+
+[data-theme='dark'] .ProseMirror [data-task-details="true"]:hover {
+  background-color: rgba(55, 65, 81, 0.5);
+}
+
+/* Spacing between task and its details */
+.ProseMirror [data-noteplan-task="true"] + [data-task-details="true"] {
+  margin-top: 0.25rem;
+}
+
+/* Animation for details appearing */
+.ProseMirror [data-task-details="true"] {
+  animation: slideInFromLeft 0.2s ease-out;
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

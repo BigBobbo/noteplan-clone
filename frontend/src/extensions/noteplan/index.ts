@@ -27,6 +27,7 @@
 
 export * from './types';
 export { NotePlanTask } from './nodes/NotePlanTask';
+export { TaskDetails } from './nodes/TaskDetails';
 export { NotePlanMarkdown, noteplanTaskMarkdownTransformer } from './plugins/NotePlanMarkdown';
 export { NotePlanCheckbox } from './plugins/NotePlanCheckbox';
 export { NotePlanKeymap } from './plugins/NotePlanKeymap';
@@ -34,6 +35,7 @@ export { NotePlanInputRules } from './plugins/NotePlanInputRules';
 export { NotePlanParser } from './plugins/NotePlanParser';
 
 import { NotePlanTask } from './nodes/NotePlanTask';
+import { TaskDetails } from './nodes/TaskDetails';
 import { NotePlanMarkdown } from './plugins/NotePlanMarkdown';
 import { NotePlanCheckbox } from './plugins/NotePlanCheckbox';
 import { NotePlanKeymap } from './plugins/NotePlanKeymap';
@@ -46,14 +48,16 @@ import { NotePlanParser } from './plugins/NotePlanParser';
  * Includes all NotePlan extensions in the correct order:
  * 1. NotePlanParser for markdown parsing (FIRST - highest priority to intercept content)
  * 2. NotePlanTask node
- * 3. NotePlanMarkdown for serialization
- * 4. NotePlanCheckbox for interactive clicking
- * 5. NotePlanKeymap for keyboard shortcuts
- * 6. NotePlanInputRules for automatic task creation
+ * 3. TaskDetails node for task descriptions
+ * 4. NotePlanMarkdown for serialization
+ * 5. NotePlanCheckbox for interactive clicking
+ * 6. NotePlanKeymap for keyboard shortcuts
+ * 7. NotePlanInputRules for automatic task creation
  */
 export const NotePlanExtensions = [
   NotePlanParser, // MUST be first - parses markdown before anything else
   NotePlanTask,
+  TaskDetails, // Task description/details node
   NotePlanMarkdown,
   NotePlanCheckbox,
   NotePlanKeymap,

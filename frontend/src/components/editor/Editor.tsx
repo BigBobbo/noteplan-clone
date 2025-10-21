@@ -11,6 +11,66 @@ import { wikiLinkMarkdownTransformer } from '../../extensions/WikiLinkMarkdown';
 import { NotePlanExtensions } from '../../extensions/noteplan';
 import { resolveLink } from '../../services/linkService';
 
+// Helper function to parse task details content into structured nodes
+function parseTaskDetailsContent(details: string, taskState: string): any[] {
+  const lines = details.split('\n');
+  const nodes: any[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Check for bullet lists
+    const bulletMatch = line.match(/^(\s*)([-*+])\s+(.+)$/);
+    if (bulletMatch) {
+      // Collect consecutive bullets
+      const bulletItems: any[] = [];
+      let j = i;
+
+      while (j < lines.length) {
+        const bulletLine = lines[j].match(/^(\s*)([-*+])\s+(.+)$/);
+        if (bulletLine) {
+          bulletItems.push({
+            type: 'listItem',
+            content: [{
+              type: 'paragraph',
+              content: [{ type: 'text', text: bulletLine[3] }]
+            }]
+          });
+          j++;
+        } else {
+          break;
+        }
+      }
+
+      if (bulletItems.length > 0) {
+        nodes.push({
+          type: 'bulletList',
+          content: bulletItems,
+        });
+        i = j;
+        continue;
+      }
+    }
+
+    // Empty line
+    if (!line.trim()) {
+      nodes.push({ type: 'paragraph' });
+      i++;
+      continue;
+    }
+
+    // Regular paragraph (trim leading/trailing spaces from line)
+    nodes.push({
+      type: 'paragraph',
+      content: [{ type: 'text', text: line.trim() }],
+    });
+    i++;
+  }
+
+  return nodes;
+}
+
 // Helper function to parse task details
 function parseTaskDetailsForEditor(
   taskLineNumber: number,
@@ -92,6 +152,17 @@ function parseNotePlanMarkdown(markdown: string): any {
         attrs: { state, indent, hasDetails, detailsPreview },
         content: content.trim() ? [{ type: 'text', text: content.trim() }] : undefined,
       });
+
+      // NEW: Create TaskDetails node if task has details
+      if (hasDetails && details) {
+        console.log('[parseNotePlanMarkdown] Creating TaskDetails node for:', content);
+        const detailsNodes = parseTaskDetailsContent(details, state);
+        nodes.push({
+          type: 'taskDetails',
+          attrs: { taskState: state },
+          content: detailsNodes,
+        });
+      }
 
       // Skip detail lines
       i = detailsEndLine + 1;
@@ -270,7 +341,33 @@ export const Editor: React.FC = () => {
           const indent = '  '.repeat(node.attrs.indent || 0);
           // GFM format: - [marker] text
           markdown += `${indent}- [${marker}] ${node.textContent}\n`;
-        } else if (node.type.name === 'heading') {
+        }
+        else if (node.type.name === 'taskDetails') {
+          // NEW: Serialize task details as indented content
+          const baseIndent = '    '; // 4 spaces for details
+
+          node.content.forEach((child) => {
+            if (child.type.name === 'paragraph') {
+              // Only add non-empty paragraphs
+              if (child.textContent.trim()) {
+                markdown += `${baseIndent}${child.textContent}\n`;
+              } else {
+                // Empty paragraph = blank line
+                markdown += '\n';
+              }
+            } else if (child.type.name === 'bulletList') {
+              child.forEach((listItem) => {
+                markdown += `${baseIndent}- ${listItem.textContent}\n`;
+              });
+            } else {
+              // Fallback for other node types
+              if (child.textContent) {
+                markdown += `${baseIndent}${child.textContent}\n`;
+              }
+            }
+          });
+        }
+        else if (node.type.name === 'heading') {
           const level = node.attrs.level || 1;
           markdown += `${'#'.repeat(level)} ${node.textContent}\n`;
         } else if (node.type.name === 'paragraph') {
