@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
+import { Toaster } from 'react-hot-toast';
 import { DragDropProvider } from './components/DragDropProvider';
 import { Layout } from './components/layout/Layout';
 import { NewFileModal } from './components/modals/NewFileModal';
 import { DeleteConfirm } from './components/modals/DeleteConfirm';
 import { CommandPalette } from './components/command/CommandPalette';
+import { QuickCapture } from './components/quickCapture/QuickCapture';
 import { useWebSocket } from './hooks/useWebSocket';
 import { useKeyboard } from './hooks/useKeyboard';
 import { useUIStore } from './store/uiStore';
@@ -61,6 +63,12 @@ function App() {
 
         {/* Command Palette */}
         <CommandPalette />
+
+        {/* Quick Capture - Global keyboard shortcut: Cmd+Shift+N */}
+        <QuickCapture />
+
+        {/* Toast Notifications */}
+        <Toaster />
 
         {/* Global Error Toast */}
         {error && (
