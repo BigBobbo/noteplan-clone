@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { format } from 'date-fns';
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
@@ -7,6 +7,7 @@ import remarkBreaks from 'remark-breaks';
 import type { ParsedTask } from '../../services/taskService';
 import { PriorityBadge } from '../tasks/PriorityBadge';
 import { useTaskDetailsStore } from '../../store/taskDetailsStore';
+import { toggleTaskAcrossFiles } from '../../services/crossFileTaskService';
 import clsx from 'clsx';
 
 interface KanbanCardProps {
@@ -15,6 +16,8 @@ interface KanbanCardProps {
 
 export const KanbanCard: React.FC<KanbanCardProps> = ({ task }) => {
   const { masterToggleVisible, isCollapsed, toggleExpansion } = useTaskDetailsStore();
+  const [isToggling, setIsToggling] = useState(false);
+
   const hasDetails = task.hasDetails && task.details;
   const isDetailsCollapsed = isCollapsed(task.id);
   const showDetails = masterToggleVisible && !isDetailsCollapsed && hasDetails;
@@ -39,6 +42,23 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ task }) => {
     }
   };
 
+  // Handle task completion
+  const handleToggleComplete = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Don't trigger drag
+
+    if (isToggling) return; // Prevent double-clicks
+
+    setIsToggling(true);
+    try {
+      await toggleTaskAcrossFiles(task);
+    } catch (error) {
+      console.error('[KanbanCard] Failed to toggle task:', error);
+      // TODO: Show error to user
+    } finally {
+      setIsToggling(false);
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -46,31 +66,49 @@ export const KanbanCard: React.FC<KanbanCardProps> = ({ task }) => {
       {...attributes}
       {...listeners}
       className={clsx(
-        'bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow cursor-grab active:cursor-grabbing border border-gray-200 dark:border-gray-700',
-        isDragging && 'opacity-50'
+        'bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700',
+        isDragging && 'opacity-50',
+        isToggling && 'opacity-70 pointer-events-none'
       )}
     >
-      {/* Priority, Text, and Details Toggle */}
-      <div className="flex items-start gap-2 mb-2">
-        {task.priority && <PriorityBadge priority={task.priority} size="sm" />}
-        <p className="text-sm text-gray-900 dark:text-gray-100 flex-1 leading-snug">
-          {task.text}
-        </p>
+      {/* Checkbox for completion */}
+      <div className="flex items-start gap-3 mb-2">
+        <input
+          type="checkbox"
+          checked={task.completed}
+          onChange={handleToggleComplete}
+          disabled={isToggling}
+          className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 flex-shrink-0 cursor-pointer"
+          onClick={(e) => e.stopPropagation()}
+        />
 
-        {/* Details toggle button */}
-        {hasDetails && masterToggleVisible && (
-          <button
-            onClick={handleToggleDetails}
-            className="flex-shrink-0 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-            title={showDetails ? 'Hide details' : 'Show details'}
-          >
-            {showDetails ? (
-              <ChevronDownIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-            ) : (
-              <ChevronRightIcon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-            )}
-          </button>
-        )}
+        {/* Priority, Text, and Details Toggle */}
+        <div className="flex items-start gap-2 flex-1">
+          {task.priority && <PriorityBadge priority={task.priority} size="sm" />}
+          <p className={clsx(
+            "text-sm flex-1 leading-snug",
+            task.completed
+              ? "line-through text-gray-400 dark:text-gray-500"
+              : "text-gray-900 dark:text-gray-100"
+          )}>
+            {task.text}
+          </p>
+
+          {/* Details toggle button */}
+          {hasDetails && masterToggleVisible && (
+            <button
+              onClick={handleToggleDetails}
+              className="flex-shrink-0 p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+              title={showDetails ? 'Hide details' : 'Show details'}
+            >
+              {showDetails ? (
+                <ChevronDownIcon className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              ) : (
+                <ChevronRightIcon className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Task Details */}

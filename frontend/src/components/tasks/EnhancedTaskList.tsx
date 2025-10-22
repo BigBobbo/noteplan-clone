@@ -8,6 +8,7 @@ import { useTaskOrderStore } from '../../store/taskOrderStore';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { ChevronRightIcon, ChevronDownIcon, DocumentTextIcon, GlobeAltIcon } from '@heroicons/react/24/outline';
 import type { ParsedTask } from '../../services/taskService';
+import { toggleTaskAcrossFiles, rescheduleTaskAcrossFiles } from '../../services/crossFileTaskService';
 import clsx from 'clsx';
 
 type ViewMode = 'current' | 'multi';
@@ -101,9 +102,49 @@ export const EnhancedTaskList: React.FC = () => {
     scheduled: countTasks(tasksToDisplay.filter(t => t.date !== undefined)),
   }), [tasksToDisplay]);
 
-  const handleReschedule = (taskId: string) => {
-    const today = new Date();
-    rescheduleTask(taskId, today);
+  // Toggle task handler - uses different logic based on view mode
+  const handleToggleTask = async (taskId: string) => {
+    if (viewMode === 'current') {
+      // Use the normal toggleTask from useTasks hook (works on current file)
+      toggleTask(taskId);
+    } else {
+      // Multi-file mode - find task and use crossFileTaskService
+      const task = allGlobalTasks.find(t => t.id === taskId);
+      if (!task) {
+        console.error('[EnhancedTaskList] Task not found:', taskId);
+        return;
+      }
+
+      try {
+        await toggleTaskAcrossFiles(task);
+      } catch (error) {
+        console.error('[EnhancedTaskList] Failed to toggle task:', error);
+        // TODO: Show user-facing error message
+      }
+    }
+  };
+
+  // Reschedule task handler - uses different logic based on view mode
+  const handleReschedule = async (taskId: string) => {
+    if (viewMode === 'current') {
+      // Use the normal rescheduleTask from useTasks hook
+      const today = new Date();
+      rescheduleTask(taskId, today);
+    } else {
+      // Multi-file mode - find task and use crossFileTaskService
+      const task = allGlobalTasks.find(t => t.id === taskId);
+      if (!task) {
+        console.error('[EnhancedTaskList] Task not found for reschedule:', taskId);
+        return;
+      }
+
+      try {
+        const today = new Date();
+        await rescheduleTaskAcrossFiles(task, today);
+      } catch (error) {
+        console.error('[EnhancedTaskList] Failed to reschedule task:', error);
+      }
+    }
   };
 
   const handleResetOrder = () => {
@@ -309,7 +350,7 @@ export const EnhancedTaskList: React.FC = () => {
                         <TaskTreeItem
                           key={task.id}
                           task={task}
-                          onToggle={toggleTask}
+                          onToggle={handleToggleTask}
                           onReschedule={handleReschedule}
                           showSource={false} // Don't show source within groups
                         />
@@ -332,7 +373,7 @@ export const EnhancedTaskList: React.FC = () => {
                   <TaskTreeItem
                     key={task.id}
                     task={task}
-                    onToggle={toggleTask}
+                    onToggle={handleToggleTask}
                     onReschedule={handleReschedule}
                     showSource={viewMode === 'multi'}
                   />
@@ -343,7 +384,7 @@ export const EnhancedTaskList: React.FC = () => {
                 <TaskTreeItem
                   key={task.id}
                   task={task}
-                  onToggle={toggleTask}
+                  onToggle={handleToggleTask}
                   onReschedule={handleReschedule}
                   showSource={viewMode === 'multi'}
                 />

@@ -4,6 +4,7 @@ import { TaskTreeItem } from './TaskTreeItem';
 import { TaskFilters } from './TaskFilters';
 import type { ParsedTask } from '../../services/taskService';
 import { ChevronRightIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
+import { toggleTaskAcrossFiles, rescheduleTaskAcrossFiles } from '../../services/crossFileTaskService';
 
 export const AllTasksView: React.FC = () => {
   const { allGlobalTasks, isIndexing } = useGlobalTaskStore();
@@ -77,6 +78,43 @@ export const AllTasksView: React.FC = () => {
       newExpanded.add(fileName);
     }
     setExpandedFiles(newExpanded);
+  };
+
+  // Handler for task toggle
+  const handleToggleTask = async (taskId: string) => {
+    // Find the task in the global task list
+    const task = allGlobalTasks.find(t => t.id === taskId);
+
+    if (!task) {
+      console.error('[AllTasksView] Task not found:', taskId);
+      return;
+    }
+
+    try {
+      await toggleTaskAcrossFiles(task);
+    } catch (error) {
+      console.error('[AllTasksView] Failed to toggle task:', error);
+      // TODO: Show user-facing error message (toast notification)
+    }
+  };
+
+  // Handler for task reschedule
+  const handleRescheduleTask = async (taskId: string) => {
+    const task = allGlobalTasks.find(t => t.id === taskId);
+
+    if (!task) {
+      console.error('[AllTasksView] Task not found:', taskId);
+      return;
+    }
+
+    try {
+      // For now, just log - full date picker integration in future
+      console.log('[AllTasksView] Reschedule requested for task:', taskId);
+      // TODO: Open date picker modal, then call:
+      // await rescheduleTaskAcrossFiles(task, selectedDate);
+    } catch (error) {
+      console.error('[AllTasksView] Failed to reschedule task:', error);
+    }
   };
 
   // Expand all files by default when first loading
@@ -154,14 +192,9 @@ export const AllTasksView: React.FC = () => {
                     <TaskTreeItem
                       key={task.id}
                       task={task}
-                      onToggle={() => {
-                        // Toggle is handled globally - we need to refresh from the file
-                        console.log('Toggle task globally:', task.id);
-                      }}
-                      onReschedule={() => {
-                        // Reschedule is handled globally
-                        console.log('Reschedule task globally:', task.id);
-                      }}
+                      onToggle={handleToggleTask}
+                      onReschedule={handleRescheduleTask}
+                      showSource={false}
                     />
                   ))}
                 </div>
