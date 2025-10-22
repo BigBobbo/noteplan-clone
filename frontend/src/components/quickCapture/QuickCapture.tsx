@@ -3,6 +3,7 @@ import { useHotkeys } from 'react-hotkeys-hook';
 import toast from 'react-hot-toast';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { api } from '../../services/api';
+import { useUIStore } from '../../store/uiStore';
 import clsx from 'clsx';
 
 /**
@@ -29,7 +30,7 @@ interface QuickCaptureProps {
 export const QuickCapture: React.FC<QuickCaptureProps> = ({
   inboxPath = INBOX_PATH
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const { quickCaptureOpen, openQuickCapture, closeQuickCapture } = useUIStore();
   const [input, setInput] = useState('');
   const [priority, setPriority] = useState<1 | 2 | 3 | 4 | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,29 +38,29 @@ export const QuickCapture: React.FC<QuickCaptureProps> = ({
   // Register global keyboard shortcut
   useHotkeys('mod+shift+n', (e) => {
     e.preventDefault();
-    setIsOpen(true);
+    openQuickCapture();
   }, { enableOnFormTags: true });
 
   // Close on ESC
   useHotkeys('esc', () => {
-    if (isOpen) {
+    if (quickCaptureOpen) {
       handleClose();
     }
-  }, { enableOnFormTags: true, enabled: isOpen });
+  }, { enableOnFormTags: true, enabled: quickCaptureOpen });
 
   // Focus input when modal opens
   useEffect(() => {
-    if (isOpen) {
+    if (quickCaptureOpen) {
       // Small delay to ensure modal is rendered
       setTimeout(() => {
         const input = document.getElementById('quick-capture-input');
         input?.focus();
       }, 50);
     }
-  }, [isOpen]);
+  }, [quickCaptureOpen]);
 
   const handleClose = () => {
-    setIsOpen(false);
+    closeQuickCapture();
     setInput('');
     setPriority(null);
   };
@@ -124,7 +125,7 @@ export const QuickCapture: React.FC<QuickCaptureProps> = ({
     { value: 4, label: 'P4', color: 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400' },
   ];
 
-  if (!isOpen) return null;
+  if (!quickCaptureOpen) return null;
 
   return (
     <>

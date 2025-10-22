@@ -6,6 +6,7 @@ import {
   PlusIcon,
   CalendarIcon,
   CommandLineIcon,
+  InboxIcon,
 } from '@heroicons/react/24/outline';
 import { useUIStore } from '../../store/uiStore';
 import { useCalendarStore } from '../../store/calendarStore';
@@ -17,6 +18,7 @@ export const Header: React.FC = () => {
     toggleTheme,
     toggleSidebar,
     openNewFileModal,
+    openQuickCapture,
     toggleCommandPalette,
   } = useUIStore();
   const { showTimeline, toggleTimeline } = useCalendarStore();
@@ -40,6 +42,18 @@ export const Header: React.FC = () => {
 
       {/* Right side */}
       <div className="flex items-center gap-2">
+        {/* Quick Capture Button */}
+        <Button
+          onClick={openQuickCapture}
+          variant="secondary"
+          size="sm"
+          className="flex items-center gap-2"
+          title="Quick Capture - Add task to Inbox (Cmd+Shift+N)"
+        >
+          <InboxIcon className="h-4 w-4" />
+          <span className="hidden sm:inline">Quick Capture</span>
+        </Button>
+
         {/* New Note Button */}
         <Button
           onClick={openNewFileModal}

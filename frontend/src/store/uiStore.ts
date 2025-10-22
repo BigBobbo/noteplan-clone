@@ -18,6 +18,7 @@ interface UIStore {
   deleteConfirmOpen: boolean;
   settingsModalOpen: boolean;
   commandPaletteOpen: boolean;
+  quickCaptureOpen: boolean;
   fileToDelete: string | null;
 
   // Actions
@@ -35,6 +36,8 @@ interface UIStore {
   toggleCommandPalette: () => void;
   openCommandPalette: () => void;
   closeCommandPalette: () => void;
+  openQuickCapture: () => void;
+  closeQuickCapture: () => void;
 }
 
 export const useUIStore = create<UIStore>()(
@@ -48,6 +51,7 @@ export const useUIStore = create<UIStore>()(
       deleteConfirmOpen: false,
       settingsModalOpen: false,
       commandPaletteOpen: false,
+      quickCaptureOpen: false,
       fileToDelete: null,
 
       toggleSidebar: () =>
@@ -91,6 +95,9 @@ export const useUIStore = create<UIStore>()(
         set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
       openCommandPalette: () => set({ commandPaletteOpen: true }),
       closeCommandPalette: () => set({ commandPaletteOpen: false }),
+
+      openQuickCapture: () => set({ quickCaptureOpen: true }),
+      closeQuickCapture: () => set({ quickCaptureOpen: false }),
     }),
     {
       name: 'noteplan-ui-storage',
