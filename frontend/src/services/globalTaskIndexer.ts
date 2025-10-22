@@ -44,11 +44,18 @@ class GlobalTaskIndexer {
       const response = await api.listFiles();
       const files = response.files || [];
 
-      // Filter to only Notes files (not Calendar)
-      const notesFiles = files.filter(file =>
-        file.folder === 'Notes' &&
-        (file.path.endsWith('.txt') || file.path.endsWith('.md'))
-      );
+      // Filter to NotePlan Notes directory (including nested subdirectories)
+      const notesFiles = files.filter((file) => {
+        const path = file.path || '';
+        const folder = file.folder || '';
+        const inNotesFolder =
+          path.startsWith('Notes/') ||
+          folder === 'Notes' ||
+          folder.startsWith('Notes/');
+        const hasSupportedExtension =
+          path.endsWith('.txt') || path.endsWith('.md');
+        return inNotesFolder && hasSupportedExtension;
+      });
 
       console.log(`[GlobalTaskIndexer] Found ${notesFiles.length} Notes files to index`);
 
