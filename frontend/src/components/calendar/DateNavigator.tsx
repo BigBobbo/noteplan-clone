@@ -2,9 +2,11 @@ import React from 'react';
 import { useCalendarStore } from '../../store/calendarStore';
 import { toFullDisplayDate, toShortDisplayDate, formatMonthYear } from '../../utils/dateUtils';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import clsx from 'clsx';
+import type { CalendarView } from '../../store/calendarStore';
 
 export const DateNavigator: React.FC = () => {
-  const { currentDate, view, goToPrevious, goToNext, goToToday } = useCalendarStore();
+  const { currentDate, view, goToPrevious, goToNext, goToToday, setView } = useCalendarStore();
 
   const getDisplayText = () => {
     if (view === 'day') {
@@ -60,13 +62,56 @@ export const DateNavigator: React.FC = () => {
         </button>
       </div>
 
-      {/* Today button */}
-      <button
-        onClick={goToToday}
-        className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-      >
-        Today
-      </button>
+      {/* View switcher and Today button */}
+      <div className="flex items-center gap-2">
+        {/* View switcher */}
+        <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+          <button
+            onClick={() => setView('day')}
+            className={clsx(
+              'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+              {
+                'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm': view === 'day',
+                'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white': view !== 'day',
+              }
+            )}
+          >
+            Day
+          </button>
+          <button
+            onClick={() => setView('week')}
+            className={clsx(
+              'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+              {
+                'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm': view === 'week',
+                'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white': view !== 'week',
+              }
+            )}
+          >
+            Week
+          </button>
+          <button
+            onClick={() => setView('month')}
+            className={clsx(
+              'px-3 py-1.5 text-sm font-medium rounded-md transition-colors',
+              {
+                'bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 shadow-sm': view === 'month',
+                'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white': view !== 'month',
+              }
+            )}
+          >
+            Month
+          </button>
+        </div>
+
+        {/* Today button */}
+        <button
+          onClick={goToToday}
+          className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+        >
+          Today
+        </button>
+      </div>
     </div>
   );
 };
