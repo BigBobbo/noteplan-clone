@@ -2,6 +2,7 @@ import React, { useEffect, useMemo } from 'react';
 import { useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
 import { EditorContent } from '@tiptap/react';
 import { EditorToolbar } from './EditorToolbar';
 import { useFileStore } from '../../store/fileStore';
@@ -11,6 +12,7 @@ import { wikiLinkMarkdownTransformer } from '../../extensions/WikiLinkMarkdown';
 import { NotePlanExtensions } from '../../extensions/noteplan';
 import { resolveLink } from '../../services/linkService';
 import { ScheduledTasksSection } from '../ScheduledTasksSection';
+import { uploadImage, getImageFromClipboard, getImageFromDrop, showImageWarning, showImageError } from '../../utils/imageUtils';
 
 // Helper function to parse task details content into structured nodes
 function parseTaskDetailsContent(details: string, taskState: string): any[] {
@@ -223,6 +225,22 @@ function parseNotePlanMarkdown(markdown: string): any {
       continue;
     }
 
+    // Check for image markdown: ![alt](src)
+    const imageMatch = line.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imageMatch) {
+      const [, alt, src] = imageMatch;
+      console.log('[parseNotePlanMarkdown] Found image:', src, 'alt:', alt);
+      nodes.push({
+        type: 'image',
+        attrs: {
+          src: src.trim(),
+          alt: alt.trim(),
+        },
+      });
+      i++;
+      continue;
+    }
+
     // Regular paragraph
     nodes.push({
       type: 'paragraph',
@@ -329,6 +347,14 @@ export const Editor: React.FC = () => {
           class: 'wiki-link-decoration',
         },
       }),
+      // Image support
+      Image.configure({
+        inline: true,
+        allowBase64: false,
+        HTMLAttributes: {
+          class: 'max-w-full h-auto rounded cursor-pointer',
+        },
+      }),
     ],
     content: parsedContent,
     editable: true,
@@ -416,6 +442,11 @@ export const Editor: React.FC = () => {
           });
         } else if (node.type.name === 'horizontalRule') {
           markdown += '---\n';
+        } else if (node.type.name === 'image') {
+          // Serialize image as markdown: ![alt](src)
+          const src = node.attrs.src || '';
+          const alt = node.attrs.alt || '';
+          markdown += `![${alt}](${src})\n`;
         } else {
           // Fallback for other node types - skip empty nodes
           if (node.textContent && node.textContent.trim()) {
@@ -443,6 +474,101 @@ export const Editor: React.FC = () => {
     editorProps: {
       attributes: {
         class: 'prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none focus:outline-none p-6',
+      },
+      handlePaste: (view, event) => {
+        console.log('[Editor] handlePaste called');
+
+        // Check for image in clipboard
+        const imageFile = getImageFromClipboard(event);
+        if (imageFile) {
+          console.log('[Editor] Image found in clipboard, uploading...');
+          event.preventDefault();
+
+          // Upload image
+          uploadImage(imageFile).then(result => {
+            if (result.success && result.relativePath) {
+              console.log('[Editor] Image uploaded successfully:', result.relativePath);
+
+              // Show warning if file is large
+              if (result.warning) {
+                showImageWarning(result.warning);
+              }
+
+              // Insert image at current cursor position
+              const { state } = view;
+              const { $from } = state.selection;
+              const pos = $from.pos;
+
+              const node = state.schema.nodes.image.create({
+                src: result.relativePath,
+                alt: imageFile.name || 'image',
+              });
+
+              const tr = state.tr.insert(pos, node);
+              view.dispatch(tr);
+
+              console.log('[Editor] Image inserted into editor');
+            } else {
+              showImageError(result.error || 'Failed to upload image');
+            }
+          }).catch(error => {
+            console.error('[Editor] Image upload failed:', error);
+            showImageError('Failed to upload image');
+          });
+
+          return true; // Handled
+        }
+
+        return false; // Not handled, continue with default behavior
+      },
+      handleDrop: (view, event) => {
+        console.log('[Editor] handleDrop called');
+
+        // Check for image in drop
+        const imageFile = getImageFromDrop(event as DragEvent);
+        if (imageFile) {
+          console.log('[Editor] Image found in drop, uploading...');
+          event.preventDefault();
+
+          // Upload image
+          uploadImage(imageFile).then(result => {
+            if (result.success && result.relativePath) {
+              console.log('[Editor] Image uploaded successfully:', result.relativePath);
+
+              // Show warning if file is large
+              if (result.warning) {
+                showImageWarning(result.warning);
+              }
+
+              // Get drop position
+              const pos = view.posAtCoords({
+                left: (event as DragEvent).clientX,
+                top: (event as DragEvent).clientY,
+              });
+
+              if (pos) {
+                const node = view.state.schema.nodes.image.create({
+                  src: result.relativePath,
+                  alt: imageFile.name || 'image',
+                });
+
+                const tr = view.state.tr.insert(pos.pos, node);
+                view.dispatch(tr);
+
+                console.log('[Editor] Image inserted into editor at drop position');
+              }
+            } else {
+              showImageError(result.error || 'Failed to upload image');
+            }
+          }).catch(error => {
+            console.error('[Editor] Image upload failed:', error);
+            showImageError('Failed to upload image');
+          });
+
+          return true; // Handled
+        }
+
+        return false; // Not handled, continue with default behavior
       },
     },
   });
@@ -479,6 +605,11 @@ export const Editor: React.FC = () => {
         } else if (node.type.name === 'codeBlock') {
           const language = node.attrs.language || '';
           currentContent += `\`\`\`${language}\n${node.textContent}\n\`\`\`\n`;
+        } else if (node.type.name === 'image') {
+          // Serialize image as markdown: ![alt](src)
+          const src = node.attrs.src || '';
+          const alt = node.attrs.alt || '';
+          currentContent += `![${alt}](${src})\n`;
         } else {
           currentContent += node.textContent ? `${node.textContent}\n` : '';
         }

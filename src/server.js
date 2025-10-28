@@ -17,6 +17,7 @@ const fileRoutes = require('./routes/fileRoutes');
 const folderRoutes = require('./routes/folderRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const boardRoutes = require('./routes/boardRoutes');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 // Middleware
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
@@ -63,6 +64,7 @@ app.use('/api/files', fileRoutes);
 app.use('/api/folders', folderRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/boards', boardRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Root endpoint
 app.get('/', (req, res) => {
@@ -75,7 +77,8 @@ app.get('/', (req, res) => {
       files: '/api/files',
       folders: '/api/folders',
       calendar: '/api/calendar',
-      boards: '/api/boards'
+      boards: '/api/boards',
+      upload: '/api/upload'
     },
     documentation: 'See README.md for API documentation'
   });
