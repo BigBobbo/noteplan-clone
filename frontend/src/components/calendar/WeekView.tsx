@@ -1,11 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { useCalendarStore } from '../../store/calendarStore';
 import { useGlobalTaskStore } from '../../store/globalTaskStore';
-import { getWeekDays, formatDayOfWeek, formatDayOfMonth, isToday, isSameDay } from '../../utils/dateUtils';
+import { getWeekDays, formatDayOfWeek, formatDayOfMonth, isToday, isSameDay, toNotePlanDate } from '../../utils/dateUtils';
 import { toggleTaskAcrossFiles, rescheduleTaskAcrossFiles } from '../../services/crossFileTaskService';
+import { parseScheduledTasks, type ScheduledTaskInstance } from '../../services/scheduledTasksService';
+import { api } from '../../services/api';
 import clsx from 'clsx';
-import { CheckCircleIcon, CircleStackIcon } from '@heroicons/react/24/outline';
+import { CheckCircleIcon, CircleStackIcon, ClockIcon } from '@heroicons/react/24/outline';
 import type { ParsedTask } from '../../services/taskService';
 
 interface DraggableTaskProps {
@@ -72,6 +74,13 @@ const DraggableTask: React.FC<DraggableTaskProps> = ({ task, onToggle }) => {
 
           {/* Task metadata */}
           <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400">
+            {/* Show time slots if this task is timeblocked */}
+            {(task as any).timeSlots && (task as any).timeSlots.length > 0 && (
+              <span className="flex items-center gap-1 text-purple-600 dark:text-purple-400 font-medium">
+                <ClockIcon className="h-3 w-3" />
+                {(task as any).timeSlots.map((slot: any) => `${slot.start}-${slot.end}`).join(', ')}
+              </span>
+            )}
             {task.priority && (
               <span className={clsx('font-semibold', {
                 'text-red-600 dark:text-red-400': task.priority === 1,
@@ -193,7 +202,32 @@ export const WeekView: React.FC = () => {
   // Get all days in the current week
   const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
 
-  // Group tasks by date
+  // State for timeblocked tasks from daily notes
+  const [dailyNotesContent, setDailyNotesContent] = useState<Map<string, string>>(new Map());
+
+  // Load daily notes for the week
+  useEffect(() => {
+    const loadDailyNotes = async () => {
+      const notesMap = new Map<string, string>();
+
+      for (const day of weekDays) {
+        try {
+          const dateStr = toNotePlanDate(day);
+          const fileData = await api.getDailyNote(dateStr);
+          notesMap.set(day.toDateString(), fileData.content);
+        } catch (error) {
+          console.log(`No daily note found for ${day.toDateString()}`);
+          notesMap.set(day.toDateString(), '');
+        }
+      }
+
+      setDailyNotesContent(notesMap);
+    };
+
+    loadDailyNotes();
+  }, [weekDays]);
+
+  // Group tasks by date (including both scheduled tasks and timeblocked tasks)
   const tasksByDate = useMemo(() => {
     const grouped = new Map<string, ParsedTask[]>();
 
@@ -202,7 +236,7 @@ export const WeekView: React.FC = () => {
       grouped.set(day.toDateString(), []);
     });
 
-    // Group tasks by their scheduled date
+    // 1. Add tasks with scheduled dates (>YYYY-MM-DD)
     allGlobalTasks.forEach(task => {
       if (task.date) {
         const taskDate = new Date(task.date);
@@ -212,6 +246,33 @@ export const WeekView: React.FC = () => {
         if (grouped.has(dateKey)) {
           grouped.get(dateKey)!.push(task);
         }
+      }
+    });
+
+    // 2. Add timeblocked tasks from daily notes
+    weekDays.forEach(day => {
+      const dateKey = day.toDateString();
+      const content = dailyNotesContent.get(dateKey);
+
+      if (content) {
+        const scheduledTasks = parseScheduledTasks(content, day);
+
+        scheduledTasks.forEach(scheduledTask => {
+          const tasks = grouped.get(dateKey) || [];
+
+          // Check if this task is already in the list (to avoid duplicates)
+          const alreadyAdded = tasks.some(t => t.id === scheduledTask.task.id);
+
+          if (!alreadyAdded) {
+            // Add a marker to indicate this task has timeblocks
+            const taskWithTimeInfo = {
+              ...scheduledTask.task,
+              timeSlots: scheduledTask.timeSlots, // Add time slot info
+            };
+            tasks.push(taskWithTimeInfo as ParsedTask);
+            grouped.set(dateKey, tasks);
+          }
+        });
       }
     });
 
@@ -237,7 +298,7 @@ export const WeekView: React.FC = () => {
     });
 
     return grouped;
-  }, [weekDays, allGlobalTasks]);
+  }, [weekDays, allGlobalTasks, dailyNotesContent]);
 
   const handleDayClick = (date: Date) => {
     setDate(date);
